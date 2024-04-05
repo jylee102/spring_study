@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+
+<!-- 각 페이지의 CSS가 작성될 위치 -->
+<th:block layout:fragment="css">
+    <link rel="stylesheet" th:href="@{css/styleEx08.css}">
+    <style>
+        div { font-size: 20px; }
+    </style>
+</th:block>
+
+<!-- 각 페이지의 JS가 작성될 위치 -->
+<th:block layout:fragment="script">
+    <script th:src="@{js/scriptEx08.js}"></script>
+    <script th:inline="javascript">
+        console.log('Ex08페이지 콘솔 출력');
+    </script>
+</th:block>
+
+    <div layout:fragment="content">
+        두 번째 본문입니다.
+    </div>
+</html>

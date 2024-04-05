@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Title</title>
+</head>
+<body>
+    <div>
+        <!-- 상대경로는 GetMapping에 지정한 경로를 작성 -->
+        <a th:href="@{/ex01}">예제1 페이지 이동</a>
+        <a href="/ex01">예제1 페이지 이동(태그 속성)</a>
+    </div>
+    <div>
+        <a th:href="@{https://www.thymeleaf.org/}">타임리프 공홈 이동</a>
+        <a href="https://www.thymeleaf.org/">타임리프 공홈 이동(태그 속성)</a>
+    </div>
+    <div>
+        <a th:href="@{/ex06(param1='날씨', param2='좋음')}">파라메터 전달하며 이동</a>
+        <a href="/ex06?param1=김춘배&param2=구로역">파라메터 전달하며 이동</a>
+    </div>
+</body>
+</html>

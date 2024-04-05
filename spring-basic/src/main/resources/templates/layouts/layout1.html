@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Title</title>
+
+    <!-- 공통으로 사용할 javascript 코드 -->
+    <script th:src="@{js/script.js}"></script>
+    <!-- <script src="js/script.js"></script> -->
+
+    <!-- 공통으로 사용할 CSS 코드 -->
+    <link rel="stylesheet" th:href="@{css/style.css}">
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+
+    <!-- 각 페이지의 CSS가 작성될 위치 -->
+    <th:block layout:fragment="css"></th:block>
+
+    <!-- 각 페이지의 JS가 작성될 위치 -->
+    <th:block layout:fragment="script"></th:block>
+</head>
+<body>
+    <!-- 헤더 -->
+    <div th:replace="fragments/header::header"></div>
+
+    <!-- 본문 -->
+    <div layout:fragment="content"></div>
+
+    <!-- 푸터 -->
+    <div th:replace="fragments/footer::footer"></div>
+</body>
+</html>

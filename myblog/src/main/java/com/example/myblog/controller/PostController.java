@@ -3,6 +3,7 @@ package com.example.myblog.controller;
 import com.example.myblog.dto.Post;
 import com.example.myblog.service.PostService;
 import com.example.myblog.util.PagingUtil;
+import com.example.myblog.util.PhotoUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -25,6 +27,9 @@ public class PostController {
 
     @Autowired
     PagingUtil pagingUtil;
+
+    @Autowired
+    PhotoUtil photoUtil;
 
     @GetMapping(value = "/") // localhost로 접속
     public String index() {
@@ -255,5 +260,21 @@ public class PostController {
         // ResponseEntity<첫 번째 매개변수의 타입>(result 결과, response 상태코드)
         // HttpStatus.OK 일 때에는 ajax의 success 함수로 결과가 출력된다.
         return new ResponseEntity<Integer>(postId, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/postImgUpload")
+    public String postImgUpload(MultipartHttpServletRequest request, Model model) {
+        String uploadPath = photoUtil.ckUpload(request);
+
+        model.addAttribute("uploaded", true);
+        model.addAttribute("url", uploadPath);
+
+        /*
+        {
+            "uploaded": true,
+            "url": uploadPath
+        }
+         */
+        return "jsonView"; // model에 있는 값들이 json 객체 형식으로 forward 된다.
     }
 }

@@ -5,12 +5,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Professor {
+public class Staff {
     private String univName;
     private String id;
-    private String majorCode;
     private String name;
-    private String office;
+    private String deptNo;
     private String phone;
     private String birth;
 }

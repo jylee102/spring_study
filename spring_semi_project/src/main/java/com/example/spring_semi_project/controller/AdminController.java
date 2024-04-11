@@ -2,6 +2,7 @@ package com.example.spring_semi_project.controller;
 
 import com.example.spring_semi_project.dto.Course;
 import com.example.spring_semi_project.service.CourseService;
+import com.example.spring_semi_project.util.ConvertStringUtil;
 import com.example.spring_semi_project.util.PagingUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -26,6 +28,9 @@ public class AdminController {
     @Autowired
     PagingUtil pagingUtil;
 
+    @Autowired
+    ConvertStringUtil convertStringUtil;
+
     @GetMapping(value = "/") // localhost로 접속
     public String index(HttpSession session) {
         if (session.getAttribute("univ") == null) return "member/login";
@@ -34,8 +39,6 @@ public class AdminController {
         }
     }
 
-    // localhost/list
-    // 같은 경로로 get 방식과 post 방식을 동시에 받을 수 있다.
     @RequestMapping(value = "/list",
             method = {RequestMethod.GET, RequestMethod.POST})
     public String list(HttpSession session, HttpServletRequest request, Model model) {
@@ -97,6 +100,10 @@ public class AdminController {
             // ◀이전 1 2 3 4 5 다음▶
             String pageIndexList = pagingUtil.pageIndexList(listUrl);
 
+            for (Course c : lists) {
+                c.getCourseDay().set(0, convertStringUtil.convertToKoreanDayOfWeek(c.getCourseDay().get(0)));
+            }
+
             model.addAttribute("lists", lists); // DB에서 가져온 전체 게시물 리스트
             model.addAttribute("pageIndexList", pageIndexList); // 페이징 버튼
             model.addAttribute("dataCount", dataCount); // 게시물의 전체 개수
@@ -108,5 +115,22 @@ public class AdminController {
         }
 
         return "student/enroll";
+    }
+
+    @PostMapping(value = "/enroll")
+    public String insertPost(HttpSession session) {
+        try {
+            Object univ = session.getAttribute("univ");
+            Object memberId = session.getAttribute("member_id");
+
+            if (univ == null) {
+                return "redirect:/login"; // 세션 만료시 로그인 페이지로 이동
+            } else {
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return "redirect:/list";
     }
 }

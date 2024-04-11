@@ -5,8 +5,12 @@ import com.example.spring_semi_project.service.MemberService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 public class MemberController {
@@ -48,5 +52,26 @@ public class MemberController {
         session.removeAttribute("role");
 
         return "redirect:/";
+    }
+
+    @GetMapping(value = "/myInfo")
+    public String myInfo(HttpSession session, Model model) {
+        try {
+            Map map = new HashMap();
+            map.put("univName", session.getAttribute("univ"));
+            map.put("id", session.getAttribute("member_id"));
+
+            if (session.getAttribute("role").equals("Staff")) {
+                model.addAttribute("member", memberService.loginStaff(map));
+            } else if (session.getAttribute("role").equals("Professor")) {
+                model.addAttribute("member", memberService.loginProfessor(map));
+            } else if (session.getAttribute("role").equals("Student")) {
+                model.addAttribute("member", memberService.loginStudent(map));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return "student/myInfo";
     }
 }

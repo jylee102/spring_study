@@ -12,7 +12,50 @@
         <result column="role" property="role"/>
     </resultMap>
 
+    <resultMap id="Staff" type="Staff">
+        <result column="univ_name" property="univName"/>
+        <result column="id" property="id"/>
+        <result column="student_name" property="name"/>
+        <result column="dept_no" property="deptNo"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+    </resultMap>
+
+    <resultMap id="Professor" type="Professor">
+        <result column="univ_name" property="univName"/>
+        <result column="id" property="id"/>
+        <result column="major_code" property="majorCode"/>
+        <result column="professor_name" property="name"/>
+        <result column="office" property="office"/>
+        <result column="phone" property="phone"/>
+        <result column="birth" property="birth"/>
+    </resultMap>
+
+    <resultMap id="Student" type="Student">
+        <result column="univ_name" property="univName"/>
+        <result column="id" property="id"/>
+        <result column="major_code" property="majorCode"/>
+        <result column="student_name" property="name"/>
+        <result column="birth" property="birth"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+    </resultMap>
+
+
+
     <select id="loginMember" resultType="Member" resultMap="Member">
         SELECT * FROM MEMBER WHERE UNIV_NAME = #{univName} AND ID = #{id} AND PASSWORD = #{password}
+    </select>
+
+    <select id="loginStaff" resultType="Staff" resultMap="Staff">
+        SELECT * FROM STAFF WHERE UNIV_NAME = #{univName} AND ID = #{id}
+    </select>
+
+    <select id="loginProfessor" resultType="Professor" resultMap="Professor">
+        SELECT * FROM PROFESSOR WHERE UNIV_NAME = #{univName} AND ID = #{id}
+    </select>
+
+    <select id="loginStudent" resultType="Student" resultMap="Student">
+        SELECT * FROM STUDENT WHERE UNIV_NAME = #{univName} AND ID = #{id}
     </select>
 </mapper>

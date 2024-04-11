@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.spring_semi_project.dao.CourseDao">
+    <resultMap id="Subject" type="Subject">
+        <result column="subject_code" property="subjectCode"/>
+        <result column="subject_title" property="subjectTitle"/>
+    </resultMap>
+
+    <resultMap id="Professor" type="Professor">
+        <result column="univ_name" property="univName"/>
+        <result column="professor_id" property="professorId"/>
+        <result column="major_code" property="majorCode"/>
+        <result column="professor_name" property="professorName"/>
+        <result column="office" property="office"/>
+        <result column="phone" property="phone"/>
+        <result column="birth" property="birth"/>
+    </resultMap>
+
+    <resultMap id="CourseDay" type="CourseDay">
+        <result column="course_code" property="courseCode"/>
+        <result column="course_day" property="courseDay"/>
+    </resultMap>
+
+    <resultMap id="Course" type="Course">
+        <result column="course_code" property="courseCode"/>
+        <result column="univ_name" property="univName"/>
+        <result column="professor_id" property="professorId"/>
+        <result column="major_code" property="majorCode"/>
+        <result column="course_name" property="courseName"/>
+        <result column="classification" property="classification"/>
+        <result column="credit" property="credit"/>
+        <result column="rest_seat" property="restSeat"/>
+        <result column="max_student" property="maxStudent"/>
+        <result column="classroom" property="classroom"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+
+        <collection property="professor" resultMap="Professor"/>
+        <collection property="courseDay" ofType="java.lang.String">
+            <result column="course_day"/>
+        </collection>
+        <collection property="subject" resultMap="Subject"/>
+    </resultMap>
+
+    <select id="getCourseList" parameterType="map" resultType="Course" resultMap="Course">
+        SELECT *
+        FROM (
+        SELECT ROWNUM rnum, DATA.*
+        FROM (
+        SELECT c.course_name, c.course_code, p.professor_name,
+        s.subject_title, c.classification,
+        LISTAGG(d.course_day, ', ') WITHIN GROUP (ORDER BY d.course_day) AS course_day,
+        c.rest_seat, c.max_student
+        FROM (
+        SELECT DISTINCT course_code, course_day
+        FROM COURSE_DAY
+        ) d
+        JOIN COURSE c ON c.course_code = d.course_code
+        JOIN (SELECT * FROM PROFESSOR WHERE univ_name = #{univ}) p ON p.professor_id = c.professor_id
+        JOIN SUBJECT s ON c.major_code = s.subject_code
+        WHERE c.univ_name = #{univ}
+        AND c.major_code LIKE '%' || #{searchValue1} || '%'
+        AND c.classification LIKE '%' || #{searchValue2} || '%'
+        GROUP BY c.course_name, c.course_code, p.professor_name, s.subject_title, c.classification, c.rest_seat,
+        c.max_student
+        ) DATA
+        )
+        WHERE rnum BETWEEN 1 AND 100
+    </select>
+
+    <select id="getDataCount" parameterType="map" resultType="int">
+        SELECT NVL(COUNT(*), 0) FROM COURSE
+        WHERE UNIV_NAME = #{univ}
+        AND major_code LIKE '%' || #{searchValue1} || '%'
+        AND classification LIKE '%' || #{searchValue2} || '%'
+    </select>
+</mapper>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+
+<div layout:fragment="content" class="content-wrapper">
+        <div class="grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Basic Table</h4>
+                    <p class="card-description">
+                        Add class <code>.table</code>
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>강좌코드</th>
+                                    <th>강좌명</th>
+                                    <th>교수</th>
+                                    <th>강의시간</th>
+                                    <th>강의실</th>
+                                    <th>여석</th>
+                                    <th>구분</th>
+                                    <th>신청</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr th:if="${#lists.size(lists)} > 0" th:each="course:${lists}">
+                                    <td scope="row" th:text="${course.courseCode}"></td>
+                                    <td th:text="${course.courseName}"></td>
+                                    <td th:text="${course.professor.professorName}"></td>
+                                    <td th:text="${course.courseDay.get(0)} + ' ' + ${course.startTime} + ' - ' + ${course.endTime}"></td>
+                                    <td th:text="${course.classroom}"></td>
+                                    <td th:text="${course.restSeat} + '/' + ${course.maxStudent}"></td>
+                                    <td th:text="${course.subject.subjectTitle} + ' / ' + ${course.classification}"></td>
+                                    <td>
+                                        <a th:href="">신청</a>
+                                    </td>
+                                </tr>
+
+                                <!-- 등록된 포스트가 없을 경우 -->
+                                <tr th:if="${#lists.size(lists)} == 0">
+                                    <td colspan="5">검색결과가 없습니다.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 페이징 버튼 -->
+                    <div th:if="${#lists.size(lists)} > 0" class="row justify-content-center">
+                        <div class="col-lg-10">
+                            <nav aria-label="...">
+                                <ul class="pagination justify-content-center">
+                                    <!-- 태그로 출력시 [(${변수})] 이용 -->
+                                    <!-- 텍스트로 출력시 [[${변수}]] 이용 -->
+                                    [(${pageIndexList})]
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+</html>

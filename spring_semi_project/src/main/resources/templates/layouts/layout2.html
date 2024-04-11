@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyBlog</title>
+
+    <!-- 공통으로 사용할 CSS 플러그인 -->
+    <!-- Bootstrap -->
+    <!-- base:css -->
+    <link rel="stylesheet" th:href="@{vendors/mdi/css/materialdesignicons.min.css}">
+    <link rel="stylesheet" th:href="@{vendors/feather/feather.css}">
+    <link rel="stylesheet" th:href="@{vendors/base/vendor.bundle.base.css}">
+
+    <!-- plugin css for this page -->
+    <link rel="stylesheet" th:href="@{vendors/flag-icon-css/css/flag-icon.min.css}"/>
+    <link rel="stylesheet" th:href="@{vendors/font-awesome/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{vendors/jquery-bar-rating/fontawesome-stars-o.css}">
+    <link rel="stylesheet" th:href="@{vendors/jquery-bar-rating/fontawesome-stars.css}">
+
+    <!-- 공통으로 사용할 커스터마이징 된 CSS -->
+    <link rel="stylesheet" th:href="@{css/style.css}">
+    <link rel="shortcut icon" th:href="@{images/favicon.png}" />
+
+    <!-- 각 페이지의 CSS가 작성될 위치 지정 -->
+    <th:block layout:fragment="css"></th:block>
+</head>
+
+<body>
+    <div layout:fragment="content" class="content"></div>
+
+    <!-- 공통으로 사용할 JS 플러그인 -->
+    <!-- base:js -->
+    <script th:src="@{vendors/base/vendor.bundle.base.js}"></script>
+
+    <!-- inject:js -->
+    <script th:src="@{js/off-canvas.js}"></script>
+    <script th:src="@{js/hoverable-collapse.js}"></script>
+    <script th:src="@{js/template.js}"></script>
+
+    <script th:src="@{vendors/chart.js/Chart.min.js}"></script>
+    <script th:src="@{vendors/jquery-bar-rating/jquery.barrating.min.js}"></script>
+
+    <!-- 공통으로 사용할 커스터마이징 된 JS -->
+    <script th:src="@{js/dashboard.js}"></script>
+
+    <!-- 각 페이지의 JS가 작성될 위치 지정 -->
+    <th:block layout:fragment="script"></th:block>
+</body>
+</html>

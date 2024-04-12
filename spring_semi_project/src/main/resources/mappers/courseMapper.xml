@@ -13,10 +13,13 @@
         <result column="univ_name" property="univName"/>
         <result column="id" property="id"/>
         <result column="major_code" property="majorCode"/>
-        <result column="professor_name" property="name"/>
+        <result column="name" property="name"/>
         <result column="office" property="office"/>
         <result column="phone" property="phone"/>
         <result column="birth" property="birth"/>
+        <result column="email" property="email"/>
+
+        <collection property="subject" resultMap="Subject"/>
     </resultMap>
 
     <resultMap id="CourseDay" type="CourseDay">
@@ -43,6 +46,14 @@
             <result column="course_day"/>
         </collection>
         <collection property="subject" resultMap="Subject"/>
+        <collection property="enroll" resultMap="Enroll"/>
+    </resultMap>
+
+    <resultMap id="Enroll" type="Enroll">
+        <result column="univ_name" property="univName"/>
+        <result column="id" property="id"/>
+        <result column="major_code" property="majorCode"/>
+        <result column="course_code" property="courseCode"/>
     </resultMap>
 
     <select id="getCourseList" parameterType="map" resultType="Course" resultMap="Course">
@@ -50,22 +61,23 @@
         FROM (
         SELECT ROWNUM rnum, DATA.*
         FROM (
-        SELECT c.course_name, c.course_code, p.professor_name,
+        SELECT c.course_name, c.course_code, p.name,
         s.subject_title, c.classification, c.classroom, c.start_time, c.end_time,
         LISTAGG(d.course_day, ', ') WITHIN GROUP (ORDER BY d.course_day) AS course_day,
-        c.rest_seat, c.max_student
+        c.rest_seat, c.max_student, c.major_code
         FROM (
         SELECT DISTINCT course_code, course_day
         FROM COURSE_DAY
         ) d
         JOIN COURSE c ON c.course_code = d.course_code
-        JOIN (SELECT * FROM PROFESSOR WHERE univ_name = #{univ}) p ON p.id = c.professor_id
+        JOIN (SELECT * FROM PROFESSOR WHERE univ_name = #{univName}) p ON p.id = c.professor_id
         JOIN SUBJECT s ON c.major_code = s.subject_code
-        WHERE c.univ_name = #{univ}
+        WHERE c.univ_name = #{univName}
         AND c.major_code LIKE '%' || #{searchValue1} || '%'
         AND c.classification LIKE '%' || #{searchValue2} || '%'
-        GROUP BY c.course_name, c.course_code, p.professor_name, s.subject_title,
-        c.classification, c.rest_seat, c.max_student, c.classroom, c.start_time, c.end_time
+        GROUP BY c.course_name, c.course_code, p.name, s.subject_title,
+        c.classification, c.rest_seat, c.max_student,
+        c.classroom, c.start_time, c.end_time, c.major_code
         ) DATA
         )
         WHERE rnum BETWEEN #{start} AND #{end}
@@ -73,8 +85,61 @@
 
     <select id="getDataCount" parameterType="map" resultType="int">
         SELECT NVL(COUNT(*), 0) FROM COURSE
-        WHERE UNIV_NAME = #{univ}
+        WHERE UNIV_NAME = #{univName}
         AND major_code LIKE '%' || #{searchValue1} || '%'
         AND classification LIKE '%' || #{searchValue2} || '%'
     </select>
+
+    <update id="updateRestSeat" parameterType="String">
+        UPDATE COURSE SET REST_SEAT = REST_SEAT - 1
+        WHERE COURSE_CODE = #{courseCode}
+    </update>
+
+    <insert id="enroll" parameterType="Enroll">
+        INSERT INTO ENROLL VALUES
+        (#{univName}, #{id}, #{majorCode}, #{courseCode})
+    </insert>
+
+    <select id="getMyCourse" parameterType="map" resultType="Course" resultMap="Course">
+        SELECT *
+        FROM (
+        SELECT ROWNUM rnum, DATA.*
+        FROM (
+        SELECT c.course_name, c.course_code, p.name,
+        s.subject_title, c.classification, c.classroom, c.start_time, c.end_time,
+        LISTAGG(d.course_day, ', ') WITHIN GROUP (ORDER BY d.course_day) AS course_day,
+        c.rest_seat, c.max_student, c.major_code
+        FROM (
+        SELECT DISTINCT course_code, course_day
+        FROM COURSE_DAY
+        ) d
+        JOIN COURSE c ON c.course_code = d.course_code
+        JOIN (SELECT * FROM PROFESSOR WHERE univ_name = #{univName}) p ON p.id = c.professor_id
+        JOIN SUBJECT s ON c.major_code = s.subject_code
+        JOIN (SELECT * FROM ENROLL WHERE univ_name = #{univName} AND id = #{id}) e ON c.course_code = e.course_code
+        WHERE c.univ_name = #{univName}
+        AND c.major_code LIKE '%' || '' || '%'
+        AND c.classification LIKE '%' || '' || '%'
+        GROUP BY c.course_name, c.course_code, p.name, s.subject_title,
+        c.classification, c.rest_seat, c.max_student, c.classroom, c.start_time, c.end_time, c.major_code
+        ) DATA
+        )
+        WHERE rnum BETWEEN #{start} AND #{end}
+    </select>
+
+    <select id="getMyDataCount" parameterType="map" resultType="int">
+        SELECT NVL(COUNT(*), 0) FROM ENROLL
+        WHERE UNIV_NAME = #{univName} AND ID = #{id}
+    </select>
+
+    <delete id="deleteCourse" parameterType="map">
+        DELETE FROM ENROLL
+        WHERE UNIV_NAME = #{univName} AND ID = #{id}
+        AND COURSE_CODE = #{courseCode}
+    </delete>
+
+    <update id="restoreRestSeat" parameterType="String">
+        UPDATE COURSE SET REST_SEAT = REST_SEAT + 1
+        WHERE COURSE_CODE = #{courseCode}
+    </update>
 </mapper>

@@ -1,10 +1,7 @@
 package com.example.spring_semi_project.service;
 
 import com.example.spring_semi_project.dao.MemberDao;
-import com.example.spring_semi_project.dto.Member;
-import com.example.spring_semi_project.dto.Professor;
-import com.example.spring_semi_project.dto.Staff;
-import com.example.spring_semi_project.dto.Student;
+import com.example.spring_semi_project.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,5 +30,15 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public Student loginStudent(Map map) throws Exception {
         return memberDao.loginStudent(map);
+    }
+
+    @Override
+    public void updateRecord(Map map) throws Exception {
+        memberDao.updateRecord(map);
+    }
+
+    @Override
+    public void updateNickname(Map map) throws Exception {
+        memberDao.updateNickname(map);
     }
 }

@@ -12,50 +12,88 @@
         <result column="role" property="role"/>
     </resultMap>
 
+    <resultMap id="Department" type="Department">
+        <result column="dept_no" property="deptNo"/>
+        <result column="dept_name" property="deptName"/>
+    </resultMap>
+
+    <resultMap id="Subject" type="Subject">
+        <result column="subject_code" property="subjectCode"/>
+        <result column="subject_title" property="subjectTitle"/>
+    </resultMap>
+
     <resultMap id="Staff" type="Staff">
         <result column="univ_name" property="univName"/>
         <result column="id" property="id"/>
-        <result column="student_name" property="name"/>
+        <result column="name" property="name"/>
         <result column="dept_no" property="deptNo"/>
         <result column="phone" property="phone"/>
+        <result column="birth" property="birth"/>
         <result column="email" property="email"/>
+
+        <collection property="department" resultMap="Department"/>
     </resultMap>
 
     <resultMap id="Professor" type="Professor">
         <result column="univ_name" property="univName"/>
         <result column="id" property="id"/>
         <result column="major_code" property="majorCode"/>
-        <result column="professor_name" property="name"/>
+        <result column="name" property="name"/>
         <result column="office" property="office"/>
         <result column="phone" property="phone"/>
         <result column="birth" property="birth"/>
+        <result column="email" property="email"/>
+
+        <collection property="subject" resultMap="Subject"/>
     </resultMap>
 
     <resultMap id="Student" type="Student">
         <result column="univ_name" property="univName"/>
         <result column="id" property="id"/>
         <result column="major_code" property="majorCode"/>
-        <result column="student_name" property="name"/>
+        <result column="name" property="name"/>
         <result column="birth" property="birth"/>
         <result column="phone" property="phone"/>
         <result column="email" property="email"/>
+
+        <collection property="subject" resultMap="Subject"/>
     </resultMap>
 
 
-
     <select id="loginMember" resultType="Member" resultMap="Member">
-        SELECT * FROM MEMBER WHERE UNIV_NAME = #{univName} AND ID = #{id} AND PASSWORD = #{password}
+        SELECT * FROM MEMBER
+        WHERE UNIV_NAME = #{univName} AND ID = #{id} AND PASSWORD = #{password}
     </select>
 
     <select id="loginStaff" resultType="Staff" resultMap="Staff">
-        SELECT * FROM STAFF WHERE UNIV_NAME = #{univName} AND ID = #{id}
+        SELECT s.UNIV_NAME, s.ID , d.DEPT_NAME , s.NAME , TO_CHAR(s.BIRTH, 'YYYY-MM-dd') AS BIRTH, s.EMAIL, s.PHONE
+        FROM STAFF s, DEPARTMENT d
+        WHERE s.DEPT_NO = d.DEPT_NO
+        AND UNIV_NAME = #{univName} AND ID = #{id}
     </select>
 
     <select id="loginProfessor" resultType="Professor" resultMap="Professor">
-        SELECT * FROM PROFESSOR WHERE UNIV_NAME = #{univName} AND ID = #{id}
+        SELECT p.UNIV_NAME, p.ID, s.SUBJECT_TITLE, p.NAME, TO_CHAR(p.BIRTH, 'YYYY-MM-dd') AS BIRTH, p.EMAIL, p.PHONE
+        FROM PROFESSOR p, SUBJECT s
+        WHERE p.MAJOR_CODE = s.SUBJECT_CODE
+        AND UNIV_NAME = #{univName} AND ID = #{id}
     </select>
 
     <select id="loginStudent" resultType="Student" resultMap="Student">
-        SELECT * FROM STUDENT WHERE UNIV_NAME = #{univName} AND ID = #{id}
+        SELECT p.UNIV_NAME, p.ID, s.SUBJECT_TITLE, p.NAME, TO_CHAR(p.BIRTH, 'YYYY-MM-dd') AS BIRTH, p.EMAIL, p.PHONE
+        FROM STUDENT p, SUBJECT s
+        WHERE p.MAJOR_CODE = s.SUBJECT_CODE
+        AND UNIV_NAME = #{univName} AND ID = #{id}
     </select>
+
+    <update id="updateRecord" parameterType="map">
+        UPDATE ${role} SET NAME = #{name}, PHONE = #{phone}, EMAIL = #{email}
+        WHERE UNIV_NAME = #{univName} AND ID = #{id}
+        WHERE UNIV_NAME = #{univName} AND ID = #{id}
+    </update>
+
+    <update id="updateNickname" parameterType="map">
+        UPDATE MEMBER SET NICKNAME = #{nickname}
+        WHERE UNIV_NAME = #{univName} AND ID = #{id}
+    </update>
 </mapper>

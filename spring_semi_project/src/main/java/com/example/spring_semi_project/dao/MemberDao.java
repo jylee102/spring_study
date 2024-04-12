@@ -1,9 +1,6 @@
 package com.example.spring_semi_project.dao;
 
-import com.example.spring_semi_project.dto.Member;
-import com.example.spring_semi_project.dto.Professor;
-import com.example.spring_semi_project.dto.Staff;
-import com.example.spring_semi_project.dto.Student;
+import com.example.spring_semi_project.dto.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.Map;
@@ -17,4 +14,8 @@ public interface MemberDao {
     public Professor loginProfessor(Map map) throws Exception;
 
     public Student loginStudent(Map map) throws Exception;
+
+    public void updateRecord(Map map) throws Exception;
+
+    public void updateNickname(Map map) throws Exception;
 }

@@ -24,4 +24,5 @@ public class Course {
     private List<String> courseDay;
     private Subject subject;
     private Professor professor;
+    private Enroll enroll;
 }

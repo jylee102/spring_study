@@ -13,4 +13,7 @@ public class Professor {
     private String office;
     private String phone;
     private String birth;
+    private String email;
+
+    private Subject subject;
 }

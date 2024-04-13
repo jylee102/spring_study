@@ -7,10 +7,8 @@
         <div class="grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Basic Table</h4>
-                    <p class="card-description">
-                        Add class <code>.table</code>
-                    </p>
+                    <h4 class="card-title">강좌 목록</h4>
+                    <hr>
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
@@ -36,7 +34,12 @@
                                     <td th:text="${course.restSeat} + '/' + ${course.maxStudent}"></td>
                                     <td th:text="${course.subject.subjectTitle} + ' / ' + ${course.classification}"></td>
                                     <td>
-                                        신청
+                                        <button class="btn btn-primary solid blank mt-3"
+                                                th:majorCode="${course.majorCode}"
+                                                th:courseCode="${course.courseCode}"
+                                                th:onclick="applyForCourse(this.getAttribute('majorCode'), this.getAttribute('courseCode')); return false;">
+                                            신청
+                                        </button>
                                     </td>
                                 </tr>
 
@@ -64,5 +67,37 @@
             </div>
     </div>
 </div>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        function applyForCourse(majorCode, courseCode) {
+            const result = confirm('이 강좌를 등록하시겠습니까?');
+            const url = '/enroll/' + majorCode + '/' + courseCode;
+
+            if (result) {
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    contentType: "application/json",
+                    dataType: "json",
+                    success: function(response) {
+                        alert(response); // 서버에서 반환된 메시지를 알림창으로 표시
+                        location.href = '/list';
+                    },
+                    error: function(jqXHR, status, error) {
+                        console.error("status: " + status + ", error: " + error);
+
+                        if (jqXHR.status == 401) { // UNAUTHORIZED (권한 없음)
+                            location.href = '/login'; // 로그인 페이지로 이동
+                        } else {
+                            alert(jqXHR.responseText); // 기타 오류인 경우 오류 메시지 표시
+                            location.href = '/list';
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</th:block>
 
 </html>

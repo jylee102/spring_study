@@ -6,7 +6,7 @@
             <img src="images/faces/face28.png">
         </div>
         <div class="user-designation">
-            <span th:text="${session.univ}"></span>
+            <span th:text="${session.univName}"></span>
             <span class="user-designation" th:if="${session.role} == 'Staff'">(교직원)</span>
             <span class="user-designation" th:if="${session.role} == 'Professor'">(교수)</span>
             <span class="user-designation" th:if="${session.role} == 'Student'">(학생)</span>

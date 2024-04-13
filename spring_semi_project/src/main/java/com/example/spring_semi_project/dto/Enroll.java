@@ -5,14 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Student {
+public class Enroll {
     private String univName;
     private String id;
     private String majorCode;
-    private String name;
-    private String birth;
-    private String phone;
-    private String email;
-
-    private Subject subject;
+    private String courseCode;
 }

@@ -12,4 +12,7 @@ public class Staff {
     private String deptNo;
     private String phone;
     private String birth;
+    private String email;
+
+    private Department department;
 }

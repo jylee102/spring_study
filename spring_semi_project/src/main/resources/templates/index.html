@@ -7,7 +7,7 @@
     <div class="grid-margin stretch-card">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">내강좌</h4>
+                <h4 class="card-title">강좌 목록</h4>
                 <hr>
                 <div class="table-responsive">
                     <table class="table">
@@ -18,6 +18,7 @@
                             <th>강의시간</th>
                             <th>강의실</th>
                             <th>구분</th>
+                            <th></th>
                         </tr>
                         </thead>
 
@@ -25,7 +26,7 @@
                         <tr th:if="${#lists.size(lists)} > 0" th:each="course:${lists}">
                             <td th:text="${course.courseName}"></td>
                             <td th:text="${course.professor.name}"></td>
-                            <td th:text="${course.courseDay.get(0)} + ' ' + ${course.startTime} + ' - ' + ${course.endTime}"></td>
+                            <td th:text="${course.courseDayStr.get(1)}"></td>
                             <td th:text="${course.classroom}"></td>
 
                             <td th:if="${course.classification == '전공' && member.subject.subjectTitle == course.subject.subjectTitle}">본전공</td>
@@ -35,7 +36,7 @@
                             <td>
                                 <button class="btn btn-primary solid blank mt-3"
                                         th:courseCode="${course.courseCode}"
-                                        onclick="deleteCourse(this.getAttribute('courseCode'))">
+                                        th:onclick="deleteCourse(this.getAttribute('courseCode')); return false;">
                                     삭제
                                 </button>
                             </td>
@@ -43,7 +44,7 @@
 
                         <!-- 등록된 포스트가 없을 경우 -->
                         <tr th:if="${#lists.size(lists)} == 0">
-                            <td colspan="5">수강 중인 강좌가 없습니다.</td>
+                            <td colspan="5">검색결과가 없습니다.</td>
                         </tr>
                         </tbody>
                     </table>
@@ -69,24 +70,23 @@
 <th:block layout:fragment="script">
     <script th:inline="javascript">
         function deleteCourse(courseCode) {
-            const result = confirm("해당 강좌를 삭제하시겠습니까?");
+            const result = confirm('이 강좌를 삭제하시겠습니까?');
             const url = '/delete/' + courseCode;
 
             if (result) {
                 $.ajax({
-                    url : url,
-                    type : "DELETE", // 전송 방식
-                    contentType : "application/json",
-                    dataType : "json",
-                    cache : false,
-                    success : function(result, status) {
-                        alert(result);
-                        location.href = 'redirect:/';
+                    url: url,
+                    method: 'DELETE',
+                    contentType: 'application/json',
+                    success: function(response) {
+                        alert(response);
+                        location.href = '/';
                     },
-                    error : function(jqXHR, status, error) {
-                        // 삭제 권한이 없거나 로그인이 풀리면 로그인 페이지로 이동
-                        if (jqXHR.status == '401') { // UNAUTHORIZED
-                            location.href = '/login';
+                    error: function(jqXHR, status, error) {
+                        console.error('status: ' + status + ', error: ' + error);
+
+                        if (jqXHR.status == 401) { // UNAUTHORIZED
+                            location.href = '/login'; // 로그인 페이지로 이동
                         } else {
                             alert(jqXHR.responseText);
                         }

@@ -13,7 +13,11 @@ public interface CourseDao {
 
     public int getDataCount(Map map) throws Exception;
 
-    public void updateRestSeat(String courseCode) throws Exception;
+    public int countOverlappingCourses(Map map) throws Exception;
+
+    public void updateRestSeat(Enroll enroll) throws Exception;
+
+    public int isEnrolled(Enroll enroll) throws Exception;
 
     public void enroll(Enroll enroll) throws Exception;
 
@@ -23,5 +27,7 @@ public interface CourseDao {
 
     public void deleteCourse(Map map) throws Exception;
 
-    public void restoreRestSeat(String courseCode) throws Exception;
+    public void restoreRestSeat(Map map) throws Exception;
+
+    public Course getCourseInfo(Map map) throws Exception;
 }

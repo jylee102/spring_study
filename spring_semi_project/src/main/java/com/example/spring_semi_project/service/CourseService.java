@@ -11,7 +11,11 @@ public interface CourseService {
 
     public int getDataCount(Map map) throws Exception;
 
-    public void updateRestSeat(String courseCode) throws Exception;
+    public int countOverlappingCourses(Map map) throws Exception;
+
+    public void updateRestSeat(Enroll enroll) throws Exception;
+
+    public boolean isEnrolled(Enroll enroll) throws Exception;
 
     public void enroll(Enroll enroll) throws Exception;
 
@@ -21,5 +25,7 @@ public interface CourseService {
 
     public void deleteCourse(Map map) throws Exception;
 
-    public void restoreRestSeat(String courseCode) throws Exception;
+    public void restoreRestSeat(Map map) throws Exception;
+
+    public Course getCourseInfo(Map map) throws Exception;
 }

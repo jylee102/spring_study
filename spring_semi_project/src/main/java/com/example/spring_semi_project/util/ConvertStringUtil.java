@@ -1,8 +1,12 @@
 package com.example.spring_semi_project.util;
 
+import com.example.spring_semi_project.dto.Course;
+import com.example.spring_semi_project.dto.CourseTime;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -20,21 +24,28 @@ public class ConvertStringUtil {
         days.put("Sun", "일");
     }
 
-    public String convertToKoreanDayOfWeek(String dayOfWeek) {
+    public String convertToKoreanDayOfWeek(Course course) {
         StringBuilder convertedDays = new StringBuilder();
-        String[] daysArray = dayOfWeek.split(",");
 
-        for (String day : daysArray) {
-            String trimmedDay = day.trim();
-            if (days.containsKey(trimmedDay)) {
-                convertedDays.append(days.get(trimmedDay)).append("•");
+        Map<String, List<String>> courseMap = new HashMap<>();
+
+        for (CourseTime courseTime : course.getCourseTime()) {
+            String key = courseTime.getStartTime() + " - " + courseTime.getEndTime();
+
+            if (!courseMap.containsKey(key)) {
+                courseMap.put(key, new ArrayList<>());
             }
+            courseMap.get(key).add(days.get(courseTime.getCourseDay().trim()));
         }
 
-        // 마지막 "•" 제거
-        if (!convertedDays.isEmpty()) {
-            convertedDays.deleteCharAt(convertedDays.length() - 1);
+        for (Map.Entry<String, List<String>> entry : courseMap.entrySet()) {
+            for (String str : entry.getValue()) {
+                convertedDays.append(str).append("•");
+            }
+            convertedDays.replace(convertedDays.length() - 1, convertedDays.length(), " ");
+            convertedDays.append(entry.getKey()).append("\n");
         }
+        convertedDays.delete(convertedDays.length() - 1, convertedDays.length());
 
         return convertedDays.toString();
     }

@@ -5,7 +5,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CourseDay {
+public class CourseTime {
+    private String univName;
     private String courseCode;
     private String courseDay;
+    private String startTime;
+    private String endTime;
 }

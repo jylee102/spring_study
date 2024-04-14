@@ -29,7 +29,7 @@
                                     <td scope="row" th:text="${course.courseCode}"></td>
                                     <td th:text="${course.courseName}"></td>
                                     <td th:text="${course.professor.name}"></td>
-                                    <td th:text="${course.courseDay.get(0)} + ' ' + ${course.startTime} + ' - ' + ${course.endTime}"></td>
+                                    <td th:text="${course.courseDayStr.get(1)}"></td>
                                     <td th:text="${course.classroom}"></td>
                                     <td th:text="${course.restSeat} + '/' + ${course.maxStudent}"></td>
                                     <td th:text="${course.subject.subjectTitle} + ' / ' + ${course.classification}"></td>

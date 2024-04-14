@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout3}">
+
+<div layout:fragment="content" class="content-wrapper">
+    <header class="cd-main-header text-center flex flex-column flex-center">
+        <p class="margin-top-md margin-bottom-xl">👈
+            <a class="cd-article-link" href="/">홈으로</a>
+        </p>
+
+        <h1 class="text-xl">내 시간표</h1>
+    </header>
+
+    <div class="cd-schedule cd-schedule--loading margin-top-lg margin-bottom-lg js-cd-schedule">
+        <div class="cd-schedule__timeline">
+            <ul>
+                <li><span>09:00</span></li>
+                <li><span>09:30</span></li>
+                <li><span>10:00</span></li>
+                <li><span>10:30</span></li>
+                <li><span>11:00</span></li>
+                <li><span>11:30</span></li>
+                <li><span>12:00</span></li>
+                <li><span>12:30</span></li>
+                <li><span>13:00</span></li>
+                <li><span>13:30</span></li>
+                <li><span>14:00</span></li>
+                <li><span>14:30</span></li>
+                <li><span>15:00</span></li>
+                <li><span>15:30</span></li>
+                <li><span>16:00</span></li>
+                <li><span>16:30</span></li>
+                <li><span>17:00</span></li>
+                <li><span>17:30</span></li>
+                <li><span>18:00</span></li>
+            </ul>
+        </div> <!-- .cd-schedule__timeline -->
+
+        <div class="cd-schedule__events">
+            <ul>
+                <!-- 요일별로 강의 그룹화 -->
+                <li class="cd-schedule__group" th:each="day : ${daysOfWeek}">
+                    <div class="cd-schedule__top-info">
+                        <span th:text="${day}"></span>
+                    </div>
+
+                    <ul>
+                        <!-- 해당 요일의 강의 목록 반복 -->
+                        <li class="cd-schedule__event" th:each="course : ${courses}">
+                            <!-- 강의 시간표 정보 -->
+                            <th:block th:each="time : ${course.courseTime}">
+                                <th:block th:if="${time.courseDay == day}">
+                                    <!-- 강의 정보 출력 -->
+                                    <div th:if="${time.courseDay == day}">
+                                        <a class="event-anchor"
+                                           th:data-start="${time.startTime}"
+                                           th:data-end="${time.endTime}"
+                                           th:data-content="'event-' + ${course.courseCode}"
+                                           th:data-event="event-10">
+                                            <em class="cd-schedule__name" th:text="${course.courseName}"></em>
+                                            <span th:text="${course.classroom}" style="color: white; font-size: 0.8rem;"></span>
+                                        </a>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <div class="cd-schedule-modal">
+            <header class="cd-schedule-modal__header">
+                <div class="cd-schedule-modal__content">
+                    <span class="cd-schedule-modal__date"></span>
+                    <h3 class="cd-schedule-modal__name"></h3>
+                </div>
+
+                <div class="cd-schedule-modal__header-bg"></div>
+            </header>
+
+            <div class="cd-schedule-modal__body">
+                <div class="cd-schedule-modal__event-info"></div>
+                <div class="cd-schedule-modal__body-bg"></div>
+            </div>
+
+            <a href="#0" class="cd-schedule-modal__close text-replace">Close</a>
+        </div>
+
+        <div class="cd-schedule__cover-layer"></div>
+    </div> <!-- .cd-schedule -->
+</div>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        var colorMap = {};
+        [# th:each="course, iterStat : ${courses}"]
+            var courseCode = 'event-' + [[${course.courseCode}]];
+            var colorName = 'event-' + ([[${iterStat.index + 1}]] % 10 + 1); // 1부터 10까지 순환
+            colorMap[courseCode] = colorName;
+        [/]
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var eventAnchors = document.querySelectorAll('.event-anchor');
+
+            eventAnchors.forEach(function(anchor) {
+                var courseCode = anchor.getAttribute('data-content');
+                var colorName = colorMap[courseCode]; // 과목 코드에 대응하는 색상 이름
+
+                anchor.setAttribute('data-event', colorName);
+            });
+        });
+    </script>
+</th:block>
+
+</html>

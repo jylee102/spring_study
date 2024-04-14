@@ -25,8 +25,18 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public void updateRestSeat(String courseCode) throws Exception {
-        courseDao.updateRestSeat(courseCode);
+    public int countOverlappingCourses(Map map) throws Exception {
+        return courseDao.countOverlappingCourses(map);
+    }
+
+    @Override
+    public void updateRestSeat(Enroll enroll) throws Exception {
+        courseDao.updateRestSeat(enroll);
+    }
+
+    @Override
+    public boolean isEnrolled(Enroll enroll) throws Exception {
+        return courseDao.isEnrolled(enroll) != 0;
     }
 
     @Override
@@ -50,7 +60,12 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public void restoreRestSeat(String courseCode) throws Exception {
-        courseDao.restoreRestSeat(courseCode);
+    public void restoreRestSeat(Map map) throws Exception {
+        courseDao.restoreRestSeat(map);
+    }
+
+    @Override
+    public Course getCourseInfo(Map map) throws Exception {
+        return courseDao.getCourseInfo(map);
     }
 }

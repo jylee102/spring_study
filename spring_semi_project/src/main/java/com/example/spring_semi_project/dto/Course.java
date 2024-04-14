@@ -18,11 +18,11 @@ public class Course {
     private int restSeat;
     private int maxStudent;
     private String classroom;
-    private String startTime;
-    private String endTime;
 
-    private List<String> courseDay;
+    private List<String> courseDayStr;
+
     private Subject subject;
     private Professor professor;
     private Enroll enroll;
+    private List<CourseTime> courseTime;
 }

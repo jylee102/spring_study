@@ -22,11 +22,6 @@
         <collection property="subject" resultMap="Subject"/>
     </resultMap>
 
-    <resultMap id="CourseDay" type="CourseDay">
-        <result column="course_code" property="courseCode"/>
-        <result column="course_day" property="courseDay"/>
-    </resultMap>
-
     <resultMap id="Course" type="Course">
         <result column="course_code" property="courseCode"/>
         <result column="univ_name" property="univName"/>
@@ -38,15 +33,21 @@
         <result column="rest_seat" property="restSeat"/>
         <result column="max_student" property="maxStudent"/>
         <result column="classroom" property="classroom"/>
-        <result column="start_time" property="startTime"/>
-        <result column="end_time" property="endTime"/>
 
+        <result column="course_day_str" property="courseDayStr" typeHandler="com.example.spring_semi_project.dto.StringListTypeHandler"/>
+
+        <collection property="courseTime" ofType="CourseTime" resultMap="CourseTime"/>
         <collection property="professor" resultMap="Professor"/>
-        <collection property="courseDay" ofType="String">
-            <result column="course_day"/>
-        </collection>
         <collection property="subject" resultMap="Subject"/>
         <collection property="enroll" resultMap="Enroll"/>
+    </resultMap>
+
+    <resultMap id="CourseTime" type="CourseTime">
+        <result column="univ_name" property="univName"/>
+        <result column="course_code" property="courseCode"/>
+        <result column="course_day" property="courseDay"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
     </resultMap>
 
     <resultMap id="Enroll" type="Enroll">
@@ -57,29 +58,24 @@
     </resultMap>
 
     <select id="getCourseList" parameterType="map" resultType="Course" resultMap="Course">
-        SELECT *
-        FROM (
-        SELECT ROWNUM rnum, DATA.*
-        FROM (
-        SELECT c.course_name, c.course_code, p.name,
-        s.subject_title, c.classification, c.classroom, c.start_time, c.end_time,
-        LISTAGG(d.course_day, ', ') WITHIN GROUP (ORDER BY d.course_day) AS course_day,
-        c.rest_seat, c.max_student, c.major_code
-        FROM (
-        SELECT DISTINCT course_code, course_day
-        FROM COURSE_DAY
-        ) d
-        JOIN COURSE c ON c.course_code = d.course_code
-        JOIN (SELECT * FROM PROFESSOR WHERE univ_name = #{univName}) p ON p.id = c.professor_id
-        JOIN SUBJECT s ON c.major_code = s.subject_code
-        WHERE c.univ_name = #{univName}
-        AND c.major_code LIKE '%' || #{searchValue1} || '%'
-        AND c.classification LIKE '%' || #{searchValue2} || '%'
-        GROUP BY c.course_name, c.course_code, p.name, s.subject_title,
-        c.classification, c.rest_seat, c.max_student,
-        c.classroom, c.start_time, c.end_time, c.major_code
-        ) DATA
-        )
+        SELECT * FROM
+            (SELECT ROWNUM rnum, DATA.* FROM
+                (SELECT c.course_name, c.course_code, p.name,
+                    s.subject_title, c.classification, c.classroom, d.start_time, d.end_time,
+                    LISTAGG(d.course_day, ', ') WITHIN GROUP (ORDER BY dd.day_order) AS course_day_str,
+                    c.rest_seat, c.max_student, c.major_code
+                    FROM COURSE_TIME d
+                    JOIN COURSE c ON c.course_code = d.course_code
+                    JOIN (SELECT * FROM PROFESSOR WHERE univ_name = #{univName}) p ON p.id = c.professor_id
+                    JOIN SUBJECT s ON c.major_code = s.subject_code
+                    JOIN DAYS dd ON d.course_day = dd.day_name
+                    WHERE c.univ_name = #{univName}
+                    AND c.major_code LIKE '%' || #{searchValue1} || '%'
+                    AND c.classification LIKE '%' || #{searchValue2} || '%'
+                    GROUP BY c.course_name, c.course_code, p.name, s.subject_title,
+                    c.classification, c.rest_seat, c.max_student, c.classroom, d.start_time, d.end_time, c.major_code
+                ) DATA
+            )
         WHERE rnum BETWEEN #{start} AND #{end}
     </select>
 
@@ -90,10 +86,18 @@
         AND classification LIKE '%' || #{searchValue2} || '%'
     </select>
 
-    <update id="updateRestSeat" parameterType="String">
+    <update id="updateRestSeat" parameterType="Enroll">
         UPDATE COURSE SET REST_SEAT = REST_SEAT - 1
-        WHERE COURSE_CODE = #{courseCode}
+        WHERE COURSE_CODE = #{courseCode} AND UNIV_NAME = #{univName}
     </update>
+
+    <!-- 해당 강좌를 이미 수강했는지 확인하는 쿼리 -->
+    <select id="isEnrolled" parameterType="Enroll" resultType="int">
+        SELECT COUNT(*) FROM ENROLL
+        WHERE UNIV_NAME = #{univName}
+        AND ID = #{id}
+        AND COURSE_CODE = #{courseCode}
+    </select>
 
     <insert id="enroll" parameterType="Enroll">
         INSERT INTO ENROLL VALUES
@@ -101,29 +105,25 @@
     </insert>
 
     <select id="getMyCourse" parameterType="map" resultType="Course" resultMap="Course">
-        SELECT *
-        FROM (
-        SELECT ROWNUM rnum, DATA.*
-        FROM (
-        SELECT c.course_name, c.course_code, p.name,
-        s.subject_title, c.classification, c.classroom, c.start_time, c.end_time,
-        LISTAGG(d.course_day, ', ') WITHIN GROUP (ORDER BY d.course_day) AS course_day,
-        c.rest_seat, c.max_student, c.major_code
-        FROM (
-        SELECT DISTINCT course_code, course_day
-        FROM COURSE_DAY
-        ) d
-        JOIN COURSE c ON c.course_code = d.course_code
-        JOIN (SELECT * FROM PROFESSOR WHERE univ_name = #{univName}) p ON p.id = c.professor_id
-        JOIN SUBJECT s ON c.major_code = s.subject_code
-        JOIN (SELECT * FROM ENROLL WHERE univ_name = #{univName} AND id = #{id}) e ON c.course_code = e.course_code
-        WHERE c.univ_name = #{univName}
-        AND c.major_code LIKE '%' || '' || '%'
-        AND c.classification LIKE '%' || '' || '%'
-        GROUP BY c.course_name, c.course_code, p.name, s.subject_title,
-        c.classification, c.rest_seat, c.max_student, c.classroom, c.start_time, c.end_time, c.major_code
-        ) DATA
-        )
+        SELECT * FROM
+            (SELECT ROWNUM rnum, DATA.* FROM
+                (SELECT c.course_name, c.course_code, p.name,
+                    s.subject_title, c.classification, c.classroom, d.start_time, d.end_time,
+                    LISTAGG(d.course_day, ', ') WITHIN GROUP (ORDER BY dd.day_order) AS course_day_str,
+                    c.rest_seat, c.max_student, c.major_code
+                    FROM COURSE_TIME d
+                    JOIN COURSE c ON c.course_code = d.course_code
+                    JOIN (SELECT * FROM PROFESSOR WHERE univ_name = #{univName}) p ON p.id = c.professor_id
+                    JOIN SUBJECT s ON c.major_code = s.subject_code
+                    JOIN (SELECT * FROM ENROLL WHERE univ_name = #{univName} AND id = #{id}) e ON c.course_code = e.course_code
+                    JOIN DAYS dd ON d.course_day = dd.day_name
+                    WHERE c.univ_name = #{univName}
+                    AND c.major_code LIKE '%' || '' || '%'
+                    AND c.classification LIKE '%' || '' || '%'
+                    GROUP BY c.course_name, c.course_code, p.name, s.subject_title,
+                    c.classification, c.rest_seat, c.max_student, c.classroom, d.start_time, d.end_time, c.major_code
+                ) DATA
+            )
         WHERE rnum BETWEEN #{start} AND #{end}
     </select>
 
@@ -138,8 +138,34 @@
         AND COURSE_CODE = #{courseCode}
     </delete>
 
-    <update id="restoreRestSeat" parameterType="String">
+    <update id="restoreRestSeat" parameterType="map">
         UPDATE COURSE SET REST_SEAT = REST_SEAT + 1
-        WHERE COURSE_CODE = #{courseCode}
+        WHERE COURSE_CODE = #{courseCode} AND UNIV_NAME = #{univName}
     </update>
+
+    <!-- 학생의 수강 강의 시간과 겹치는 강의 수 조회 -->
+    <select id="countOverlappingCourses" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM ENROLL e
+        JOIN COURSE c ON e.course_code = c.course_code
+        JOIN COURSE_TIME ct ON c.course_code = ct.course_code
+        WHERE e.univ_name = #{univName}
+        AND e.id = #{id}
+        AND ct.course_day = #{courseDay}
+        AND (
+            (TO_DATE(#{startTime}, 'HH24:MI') BETWEEN TO_DATE(ct.start_time, 'HH24:MI') AND TO_DATE(ct.end_time, 'HH24:MI'))
+            OR
+            (TO_DATE(#{endTime}, 'HH24:MI') BETWEEN TO_DATE(ct.start_time, 'HH24:MI') AND TO_DATE(ct.end_time, 'HH24:MI'))
+            OR
+            (TO_DATE(ct.start_time, 'HH24:MI') BETWEEN TO_DATE(#{startTime}, 'HH24:MI') AND TO_DATE(#{endTime}, 'HH24:MI'))
+        )
+    </select>
+
+    <select id="getCourseInfo" parameterType="map" resultMap="Course">
+        SELECT c.course_code, c.univ_name, d.start_time, d.end_time, d.course_day
+        FROM COURSE c
+        JOIN COURSE_TIME d ON c.course_code = d.course_code AND c.UNIV_NAME = d.UNIV_NAME
+        JOIN DAYS dd ON d.course_day = dd.day_name
+        WHERE c.UNIV_NAME = #{univName} AND c.COURSE_CODE = #{courseCode}
+    </select>
 </mapper>

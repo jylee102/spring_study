@@ -1,6 +1,7 @@
 package com.example.spring_semi_project.controller;
 
 import com.example.spring_semi_project.dto.Course;
+import com.example.spring_semi_project.dto.CourseTime;
 import com.example.spring_semi_project.dto.Enroll;
 import com.example.spring_semi_project.service.CourseService;
 import com.example.spring_semi_project.service.MemberService;
@@ -19,9 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.PrintWriter;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class CourseController {
@@ -113,7 +112,8 @@ public class CourseController {
             String pageIndexList = pagingUtil.pageIndexList(listUrl);
 
             for (Course c : lists) {
-                c.getCourseDay().set(0, convertStringUtil.convertToKoreanDayOfWeek(c.getCourseDay().get(0)));
+                map.put("courseCode", c.getCourseCode());
+                c.getCourseDayStr().add(convertStringUtil.convertToKoreanDayOfWeek(courseService.getCourseInfo(map)));
             }
 
             System.out.println(model.getAttribute("member"));
@@ -199,7 +199,8 @@ public class CourseController {
             String pageIndexList = pagingUtil.pageIndexList(listUrl);
 
             for (Course c : lists) {
-                c.getCourseDay().set(0, convertStringUtil.convertToKoreanDayOfWeek(c.getCourseDay().get(0)));
+                map.put("courseCode", c.getCourseCode());
+                c.getCourseDayStr().add(convertStringUtil.convertToKoreanDayOfWeek(courseService.getCourseInfo(map)));
             }
 
             model.addAttribute("lists", lists); // DB에서 가져온 전체 게시물 리스트
@@ -213,6 +214,32 @@ public class CourseController {
         }
 
         return "student/enroll";
+    }
+
+    // 시간 중복 확인
+    public boolean isCourseTimeOverlapped(Course course, String userId) {
+        try {
+            Map<String, Object> map = new HashMap<>();
+            map.put("univName", course.getUnivName());
+            map.put("id", userId);
+
+            for (CourseTime courseTime : course.getCourseTime()) {
+                map.put("courseDay", courseTime.getCourseDay());
+                map.put("startTime", courseTime.getStartTime());
+                map.put("endTime", courseTime.getEndTime());
+
+                int overlappingCount = courseService.countOverlappingCourses(map);
+
+                if (overlappingCount > 0) {
+                    return true; // 중복 수업 발견
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return false; // 중복 수업 없음
     }
 
     @PostMapping(value = "/enroll/{majorCode}/{courseCode}")
@@ -233,13 +260,25 @@ public class CourseController {
             enroll.setMajorCode(majorCode);
             enroll.setCourseCode(courseCode);
 
+            if (courseService.isEnrolled(enroll)) {
+                return new ResponseEntity<>("이미 신청된 강좌입니다.", HttpStatus.BAD_REQUEST);
+            }
+
+            Map map = new HashMap();
+            map.put("univName", enroll.getUnivName());
+            map.put("courseCode", enroll.getCourseCode());
+
+            if (isCourseTimeOverlapped(courseService.getCourseInfo(map), (String) id)) {
+                return new ResponseEntity<>("해당 강좌의 시간과 중복되는 강좌가 있습니다.", HttpStatus.BAD_REQUEST);
+            }
             courseService.enroll(enroll);
-            courseService.updateRestSeat(courseCode);
+            courseService.updateRestSeat(enroll);
 
             return new ResponseEntity<>("강좌 수강이 성공적으로 등록되었습니다.", HttpStatus.OK);
         } catch (DuplicateKeyException e) {
             return new ResponseEntity<>("이미 신청된 강좌입니다.", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
+            e.printStackTrace();
             return new ResponseEntity<>("강좌 수강 등록에 실패했습니다. 관리자에게 문의하세요.", HttpStatus.BAD_REQUEST);
         }
     }
@@ -261,7 +300,7 @@ public class CourseController {
             map.put("courseCode", courseCode);
 
             courseService.deleteCourse(map);
-            courseService.restoreRestSeat(courseCode);
+            courseService.restoreRestSeat(map);
 
             return new ResponseEntity<String>("성공적으로 삭제되었습니다.", HttpStatus.OK);
 
@@ -269,5 +308,38 @@ public class CourseController {
             e.printStackTrace();
             return new ResponseEntity<String>("삭제에 실패하였습니다. 관리자에게 문의하세요.", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping(value = "/timeTable")
+    public String timeTable(HttpSession session, HttpServletRequest request, Model model) {
+        try {
+            String univName = (String) session.getAttribute("univName");
+            String id = (String) session.getAttribute("member_id");
+
+            if (univName == null || id == null) {
+                return "redirect:/login"; // 세션 만료시 로그인 페이지로 이동
+            }
+
+            Map map = new HashMap();
+            map.put("univName", univName);
+            map.put("id", id);
+            map.put("start", 1);
+            map.put("end", 100);
+
+            List<Course> lists = courseService.getMyCourse(map);
+
+            for (Course c : lists) {
+                map.put("courseCode", c.getCourseCode());
+                c.setCourseTime(courseService.getCourseInfo(map).getCourseTime());
+            }
+
+            String[] daysOfWeek = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+            model.addAttribute("courses", lists);
+            model.addAttribute("daysOfWeek", daysOfWeek);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return "student/timeTable";
     }
 }

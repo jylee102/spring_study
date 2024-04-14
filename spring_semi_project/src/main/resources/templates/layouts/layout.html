@@ -31,16 +31,16 @@
 <body>
     <div class="container-scroller">
 
-        <div th:replace="fragments/header::header"></div>
+        <div th:replace="~{fragments/header :: header}"></div>
 
         <div class="container-fluid page-body-wrapper">
 
-            <div th:replace="fragments/sidebar::sidebar"></div>
+            <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
             <div class="main-panel">
                 <div layout:fragment="content" class="content"></div>
 
-                <div th:replace="fragments/footer::footer"></div>
+                <div th:replace="~{fragments/footer :: footer}"></div>
             </div>
         </div>
 

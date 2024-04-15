@@ -4,12 +4,21 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.spring_semi_project.dao.MemberDao">
+    <resultMap id="Univ" type="Univ">
+        <result column="univ_name" property="univName"/>
+        <result column="address" property="address"/>
+        <result column="establishment_date" property="establishmentDate"/>
+        <result column="emblem" property="emblem"/>
+        <result column="symbol_color" property="symbolColor"/>
+    </resultMap>
+
     <resultMap id="Member" type="Member">
         <result column="univ_name" property="univName"/>
         <result column="id" property="id"/>
         <result column="nickname" property="nickname"/>
         <result column="password" property="password"/>
         <result column="role" property="role"/>
+        <collection property="univ" resultMap="Univ"/>
     </resultMap>
 
     <resultMap id="Department" type="Department">
@@ -59,10 +68,18 @@
         <collection property="subject" resultMap="Subject"/>
     </resultMap>
 
+    <resultMap id="VerificationCodes" type="VerificationCodes">
+        <result column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="code" property="code"/>
+        <result column="valid" property="valid"/>
+    </resultMap>
 
     <select id="loginMember" resultType="Member" resultMap="Member">
-        SELECT * FROM MEMBER
-        WHERE UNIV_NAME = #{univName} AND ID = #{id} AND PASSWORD = #{password}
+        SELECT m.ID, m.NICKNAME, m.ROLE, u.UNIV_NAME, u.EMBLEM, u.SYMBOL_COLOR
+        FROM MEMBER m, UNIV u
+        WHERE m.UNIV_NAME = u.UNIV_NAME
+        AND m.UNIV_NAME = #{univName} AND m.ID = #{id} AND m.PASSWORD = #{password}
     </select>
 
     <select id="loginStaff" resultType="Staff" resultMap="Staff">
@@ -96,4 +113,27 @@
         UPDATE MEMBER SET NICKNAME = #{nickname}
         WHERE UNIV_NAME = #{univName} AND ID = #{id}
     </update>
+
+    <update id="updatePassword" parameterType="map">
+        UPDATE MEMBER SET PASSWORD = #{pw}
+        WHERE UNIV_NAME = #{univName} AND ID = #{id}
+    </update>
+
+    <update id="initPassword" parameterType="map">
+        UPDATE MEMBER SET PASSWORD = 'WELCOME' || to_char(
+        (SELECT birth FROM ${role}
+        WHERE UNIV_NAME = #{univName} AND ID = #{id})
+        , 'YYMMdd') || '!'
+        WHERE UNIV_NAME = #{univName} AND ID = #{id}
+    </update>
+
+    <insert id="saveVerificationCode" parameterType="VerificationCodes">
+        insert into verification_codes values (verification_codes_seq.nextval, #{userId}, #{code}, 'N')
+    </insert>
+
+    <select id="checkVerificationCode" parameterType="String" resultType="VerificationCodes">
+        SELECT * FROM (
+        SELECT * FROM verification_codes WHERE user_id = #{userId} ORDER BY id DESC
+        ) WHERE ROWNUM = 1
+    </select>
 </mapper>

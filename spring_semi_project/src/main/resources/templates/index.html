@@ -34,7 +34,8 @@
                             <td th:unless="${course.classification == '전공'}">교양</td>
 
                             <td>
-                                <button class="btn btn-primary solid blank mt-3"
+                                <button class="btn solid blank mt-3"
+                                        th:style="'background-color: ' + ${session.symbolColor} + '; border-color: '+ ${session.symbolColor} + '; color: white;'"
                                         th:courseCode="${course.courseCode}"
                                         th:onclick="deleteCourse(this.getAttribute('courseCode')); return false;">
                                     삭제

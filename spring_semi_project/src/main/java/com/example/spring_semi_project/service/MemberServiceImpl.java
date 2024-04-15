@@ -41,4 +41,24 @@ public class MemberServiceImpl implements MemberService {
     public void updateNickname(Map map) throws Exception {
         memberDao.updateNickname(map);
     }
+
+    @Override
+    public void updatePassword(Map map) throws Exception {
+        memberDao.updatePassword(map);
+    }
+
+    @Override
+    public void initPassword(Map map) throws Exception {
+        memberDao.initPassword(map);
+    }
+
+    @Override
+    public void saveVerificationCode(VerificationCodes codes) throws Exception {
+        memberDao.saveVerificationCode(codes);
+    }
+
+    @Override
+    public VerificationCodes checkVerificationCode(String userId) throws Exception {
+        return memberDao.checkVerificationCode(userId);
+    }
 }

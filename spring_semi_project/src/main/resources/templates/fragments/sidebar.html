@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<nav th:fragment="sidebar" class="sidebar sidebar-offcanvas" id="sidebar">
+<nav th:fragment="sidebar" class="sidebar sidebar-offcanvas"
+     id="sidebar" th:style="'background-color: ' + ${session.symbolColor} + ';'">
     <div class="user-profile">
         <div class="user-image">
-            <img src="images/faces/face28.png">
+            <img th:src="${session.emblem}">
         </div>
         <div class="user-designation">
             <span th:text="${session.univName}"></span>

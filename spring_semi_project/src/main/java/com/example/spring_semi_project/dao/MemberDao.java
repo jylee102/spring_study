@@ -18,4 +18,12 @@ public interface MemberDao {
     public void updateRecord(Map map) throws Exception;
 
     public void updateNickname(Map map) throws Exception;
+
+    public void updatePassword(Map map) throws Exception;
+
+    public void initPassword(Map map) throws Exception;
+
+    public void saveVerificationCode(VerificationCodes codes) throws Exception;
+
+    public VerificationCodes checkVerificationCode(String userId) throws Exception;
 }

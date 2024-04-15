@@ -73,7 +73,9 @@
                     <div class="row">
                         <div class="col-5"></div>
                         <div class="col-2" style="display: flex; justify-content: center;">
-                            <button class="btn btn-primary solid blank mt-3" type="button" onclick="beforeSubmit(); return false;">
+                            <button class="btn solid blank mt-3" type="button"
+                                    onclick="beforeSubmit(); return false;"
+                                    th:style="'background-color: ' + ${session.symbolColor} + '; border-color: '+ ${session.symbolColor} + '; color: white;'">
                                 수정
                             </button>
                         </div>
@@ -102,7 +104,10 @@
                                 <div class="col-sm-9 input-group">
                                     <input type="text" name="nickname" class="form-control" th:value="${session.nickname}" />
                                     <div class="input-group-append">
-                                        <button class="btn btn-sm btn-primary" type="submit">변경</button>
+                                        <button class="btn btn-sm" type="submit"
+                                                th:style="'background-color: ' + ${session.symbolColor} + '; border-color: '+ ${session.symbolColor} + '; color: white;'">
+                                            변경
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -114,12 +119,12 @@
                     <p class="card-description">
                         비밀번호 변경/초기화
                     </p>
-                    <form class="row">
+                    <form class="row" name="pwForm" method="post" action="/changePw">
                         <div class="col-md-6">
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">비밀번호 변경</label>
                                 <div class="col-sm-9">
-                                    <input type="password" class="form-control" />
+                                    <input type="password" class="form-control" name="pw" />
                                 </div>
                             </div>
                         </div>
@@ -127,16 +132,23 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">비밀번호 확인</label>
                                 <div class="col-sm-9">
-                                    <input type="password" class="form-control" />
+                                    <input type="password" class="form-control" name="pwCheck" />
                                 </div>
                             </div>
                         </div>
                     </form>
                     <div class="row">
                         <div class="col-5"></div>
-                        <div class="col-2" style="display: flex; justify-content: center;">
-                            <button class="btn btn-primary solid blank mt-3" type="button" onclick="beforeSubmit(); return false;">
-                                수정
+                        <div class="col-2">
+                            <button class="btn solid blank mt-3" type="button"
+                                    onclick="checkPwForm(); return false;"
+                                    th:style="'background-color: ' + ${session.symbolColor} + '; border-color: '+ ${session.symbolColor} + '; color: white;'">
+                                비밀번호 변경
+                            </button>
+                            <button class="btn solid blank mt-3" type="button"
+                                    onclick="initPw(); return false;"
+                                    th:style="'background-color: ' + ${session.symbolColor} + '; border-color: '+ ${session.symbolColor} + '; color: white;'">
+                                비밀번호 초기화
                             </button>
                         </div>
                         <div class="col-5"></div>
@@ -193,6 +205,61 @@
         function isValidPhone(phone) {
             const phoneRegex = /^\d{3}-\d{4}-\d{4}$/;
             return phoneRegex.test(phone);
+        }
+
+        function checkPwForm() {
+            const f = document.pwForm;
+
+            const pw = f.pw.value;
+            const pwCheck = f.pwCheck.value;
+
+            if (pw != pwCheck) {
+                alert('변경할 비밀번호를 비밀번호 변경란과 비밀번호 확인란에 정확히 입력해주세요.');
+                return;
+            }
+
+            const url = '/changePw/' + pw;
+
+            $.ajax({
+                 url: url,
+                 method: 'POST',
+                 contentType: 'application/json',
+                 success: function(response) {
+                     alert(response);
+                     location.reload();
+                 },
+                 error: function(jqXHR, status, error) {
+                     console.error('status: ' + status + ', error: ' + error);
+
+                     if (jqXHR.status == 401) { // UNAUTHORIZED
+                         location.href = '/login'; // 로그인 페이지로 이동
+                     } else {
+                         alert(jqXHR.responseText);
+                     }
+                 }
+            });
+        }
+
+        function initPw() {
+            const url = '/initPw';
+
+            $.ajax({
+                 url: url,
+                 method: 'GET',
+                 contentType: 'application/json',
+                 success: function(response) {
+                     alert(response);
+                 },
+                 error: function(jqXHR, status, error) {
+                     console.error('status: ' + status + ', error: ' + error);
+
+                     if (jqXHR.status == 401) { // UNAUTHORIZED
+                         location.href = '/login'; // 로그인 페이지로 이동
+                     } else {
+                         alert(jqXHR.responseText);
+                     }
+                 }
+            });
         }
     </script>
 </th:block>

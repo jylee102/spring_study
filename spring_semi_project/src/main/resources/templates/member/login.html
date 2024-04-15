@@ -13,8 +13,8 @@
                             <div class="brand-logo">
                                 <img src="../../images/logo-dark.svg" alt="logo">
                             </div>
-                            <h4>New here?</h4>
-                            <h6 class="font-weight-light">Join us today! It takes only few steps</h6>
+                            <h4>환영합니다!</h4>
+                            <h6 class="font-weight-light">계속하려면 로그인하세요.</h6>
                             <form class="pt-3" method="post" action="/login">
                                 <div class="form-group">
                                     <label>소속학교</label>
@@ -56,10 +56,64 @@
                                 <div class="mt-3">
                                     <button class="btn btn-block btn-info btn-lg font-weight-medium auth-form-btn" type="submit">로그인</button>
                                 </div>
-                                <div class="text-center mt-4 font-weight-light">
-                                    비밀번호를 잊었나요? <a href="login.html" class="text-primary">비밀번호 초기화</a>
-                                </div>
                             </form>
+                            <div class="text-center mt-4 font-weight-light">
+                                비밀번호를 잊었나요? <a class="text-primary" onclick="openModal();">비밀번호 초기화</a>
+                            </div>
+
+                            <!-- 비밀번호 초기화 모달 -->
+                            <div id="resetPasswordModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="resetPasswordModalLabel">비밀번호 초기화</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="resetPasswordForm">
+                                                <div class="form-group">
+                                                    <label for="univName">소속학교</label>
+                                                    <select id="univName" name="univName" class="form-control">
+                                                        <option value="고려대학교">고려대학교</option>
+                                                        <option value="동양미래대학교">동양미래대학교</option>
+                                                        <option value="숙명여자대학교">숙명여자대학교</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="id">학번/교번</label>
+                                                    <input type="text" id="id" name="studentId" class="form-control" placeholder="학번 또는 교번">
+                                                </div>
+                                                <button type="button" class="btn btn-primary" onclick="sendVerificationCode()">확인</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 인증번호 입력 모달 -->
+                            <div id="verificationModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="verificationModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="verificationModalLabel">인증번호 확인</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="verificationForm">
+                                                <div class="form-group">
+                                                    <label for="verificationCode">인증번호</label>
+                                                    <input type="text" id="verificationCode" name="verificationCode" class="form-control" placeholder="인증번호를 입력하세요">
+                                                </div>
+                                                <button type="button" class="btn btn-primary" onclick="verifyVerificationCodeAndInitPw()">확인</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-lg-6 register-half-bg d-flex flex-row">
@@ -73,4 +127,83 @@
     </div>
 </div>
 
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+
+        // URL에서 error 파라미터를 확인하여 로그인 실패 시 alert 창 표시
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+
+        if (error) {
+            alert('로그인에 실패하였습니다. 다시 시도해주세요.');
+            window.location.href = '/login'; // 로그인 페이지로 이동
+        }
+
+        function openModal() {
+            $('#resetPasswordModal').modal('show');
+        }
+
+        function sendVerificationCode() {
+            var url = '/sendVerificationCode/' + $('#univName').val() + '/' + $('#id').val();
+
+            $.ajax({
+                url: url,
+                method: 'POST',
+                contentType: 'application/json',
+                success: function(response) {
+                    $('#resetPasswordModal').modal('hide');
+                    $('#verificationModal').modal('show');
+                },
+                error: function(jqXHR, status, error) {
+                    console.error('status: ' + status + ', error: ' + error);
+                    alert(jqXHR.responseText);
+                }
+            });
+        }
+
+        function initPw() {
+            const url = '/initPw';
+
+            $.ajax({
+                url: url,
+                method: 'GET',
+                contentType: 'application/json',
+                success: function(response) {
+                    alert(response); // 서버에서 비밀번호 초기화 응답 처리
+                },
+                error: function(jqXHR, status, error) {
+                    console.error('initPw 실패 - status: ' + status + ', error: ' + error);
+                    alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                }
+            });
+        }
+
+        function verifyVerificationCodeAndInitPw() {
+            var verificationCode = $('#verificationCode').val();
+            var requestData = {
+                verificationCode: verificationCode
+            };
+
+            $.ajax({
+                url: '/verifyVerificationCode',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(requestData),
+                success: function(response) {
+                    if (response.valid) {
+                        $('#verificationModal').modal('hide'); // 인증번호 확인 모달 숨기기
+                        alert('인증에 성공했습니다.'); // 비밀번호 초기화 요청 후에 alert 창 띄우기
+                        initPw(); // 비밀번호 초기화 요청
+                    } else {
+                        alert('인증번호가 올바르지 않습니다. 다시 입력해주세요.');
+                    }
+                },
+                error: function(jqXHR, status, error) {
+                    console.error('verifyVerificationCode 실패 - status: ' + status + ', error: ' + error);
+                    alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                }
+            });
+        }
+    </script>
+</th:block>
 </html>

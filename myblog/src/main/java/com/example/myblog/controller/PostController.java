@@ -22,8 +22,26 @@ import java.util.Map;
 
 @Controller
 public class PostController {
+
+    /* 1. 의존성 주입 첫번째 방법
     @Autowired
     PostService postService;
+    */
+
+    /* 2. 의존성 주입 두번째 방법(생성자)
+    private PostService postService;
+
+    public PostController(PostService postService) { // 스프링 컨테이너에서 postServiceImpl() 객체를 주입해준다
+        this.postService = postService;
+    }
+     */
+
+    /* 3. 의존성 주입 세번째 방법(setter 메소드 이용) */
+    private PostService postService;
+
+    private void setPostService(PostService postService) {
+        this.postService = postService;
+    }
 
     @Autowired
     PagingUtil pagingUtil;

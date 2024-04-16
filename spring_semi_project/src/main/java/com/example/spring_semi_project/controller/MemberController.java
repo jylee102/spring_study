@@ -243,7 +243,7 @@ public class MemberController {
     public ResponseEntity<Map<String, Boolean>> verifyVerificationCode(@RequestBody Map<String, String> requestData,
                                                                        HttpSession session) {
         String verificationCode = requestData.get("verificationCode");
-        boolean isValid = isValidVerificationCode((String) session.getAttribute("id"), verificationCode);
+        boolean isValid = isValidVerificationCode((String) session.getAttribute("member_id"), verificationCode);
 
         Map<String, Boolean> response = new HashMap<>();
         response.put("valid", isValid);

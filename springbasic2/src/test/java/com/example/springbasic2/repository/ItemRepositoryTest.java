@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDateTime;
@@ -221,6 +223,116 @@ public class ItemRepositoryTest {
                 .orderBy(qItem.price.desc());
 
         List<Item> itemList = query.fetch(); // 쿼리문 실행
+
+        for (Item item : itemList) {
+            System.out.println(item);
+        }
+    }
+
+    @Test
+    @DisplayName("퀴즈3-1")
+    public void quiz3_1Test() {
+        JPAQueryFactory qf = new JPAQueryFactory(em);
+        QItem qItem = QItem.item;
+
+        JPAQuery<Item> query = qf.selectFrom(qItem)
+                .where(qItem.itemNm.eq("테스트 상품1"))
+                .where(qItem.itemSellStatus.eq(ItemSellStatus.SELL));
+
+        List<Item> itemList = query.fetch();
+
+        for (Item item : itemList) {
+            System.out.println(item);
+        }
+    }
+
+    @Test
+    @DisplayName("퀴즈3-2")
+    public void quiz3_2Test() {
+        JPAQueryFactory qf = new JPAQueryFactory(em);
+        QItem qItem = QItem.item;
+
+        JPAQuery<Item> query = qf.selectFrom(qItem)
+                .where(qItem.price.between(10004, 10008));
+
+        List<Item> itemList = query.fetch();
+
+        for (Item item : itemList) {
+            System.out.println(item);
+        }
+    }
+
+    @Test
+    @DisplayName("퀴즈3-3")
+    public void quiz3_3Test() {
+        JPAQueryFactory qf = new JPAQueryFactory(em);
+        QItem qItem = QItem.item;
+
+        JPAQuery<Item> query = qf.selectFrom(qItem)
+                .where(qItem.regTime.after(LocalDateTime.of(2023, 1, 1, 12, 12, 44)));
+
+        List<Item> itemList = query.fetch();
+
+        for (Item item : itemList) {
+            System.out.println(item);
+        }
+    }
+
+    @Test
+    @DisplayName("퀴즈3-4")
+    public void quiz3_4Test() {
+        JPAQueryFactory qf = new JPAQueryFactory(em);
+        QItem qItem = QItem.item;
+
+        JPAQuery<Item> query = qf.selectFrom(qItem)
+                .where(qItem.itemSellStatus.isNotNull());
+
+        List<Item> itemList = query.fetch();
+
+        for (Item item : itemList) {
+            System.out.println(item);
+        }
+    }
+
+    @Test
+    @DisplayName("퀴즈3-5")
+    public void quiz3_5Test() {
+        JPAQueryFactory qf = new JPAQueryFactory(em);
+        QItem qItem = QItem.item;
+
+        JPAQuery<Item> query = qf.selectFrom(qItem)
+                .where(qItem.itemDetail.like("%설명1"));
+
+        List<Item> itemList = query.fetch();
+
+        for (Item item : itemList) {
+            System.out.println(item);
+        }
+    }
+
+    @Test
+    @DisplayName("querydsl 조회 테스트2")
+    public void queryDslTest2() {
+        JPAQueryFactory qf = new JPAQueryFactory(em);
+        QItem qItem = QItem.item;
+
+        /*
+         select * from item
+         where item_sell_status = 'SELL'
+         and item_detail like '%테스트 상품 상세%'
+         and price > 10003
+        */
+
+        Pageable page = PageRequest.of(0, 4); // of(조회할 페이지 번호(주의> 0부터 시작), 한 페이지당 조회할 레코드의 개수)
+
+        JPAQuery<Item> query = qf.selectFrom(qItem)
+                .where(qItem.itemSellStatus.eq(ItemSellStatus.SELL))
+                .where(qItem.itemDetail.like("%테스트 상품 상세%"))
+                .where(qItem.price.gt(10003))
+                .offset(page.getOffset())
+                .limit(page.getPageSize());
+
+        List<Item> itemList = query.fetch();
 
         for (Item item : itemList) {
             System.out.println(item);

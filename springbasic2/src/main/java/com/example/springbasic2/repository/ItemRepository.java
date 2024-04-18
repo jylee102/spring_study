@@ -45,7 +45,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     // select * from item where price < ? order by price desc
     List<Item> findByPriceLessThanOrderByPriceDesc(int price);
 
-    // JPGL 쿼리 (findBy 메소드로 이름을 짓지 않아도 된다.)
+    // JPQL 쿼리 (findBy 메소드로 이름을 짓지 않아도 된다.)
     // select * from item where item_detail = ? (일반 쿼리문은 테이블 기준)
     //@Query("select i from Item i where i.itemDetail = ?1 and i.itemNm = ?2")
     //List<Item> findByItemDetail(String itemDetail, String itemNm);

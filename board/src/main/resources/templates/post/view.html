@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout2}">
+
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+</head>
+
+<main layout:fragment="content" class="main">
+    <section class="single-block-wrapper section-padding">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
+                    <div class="single-post">
+                        <div class="post-header mb-5 text-center">
+                            <input type="hidden" id="boardId" th:value="${board.id}" />
+                            <h2 class="post-title mt-2" th:text="${board.title}">제목</h2>
+
+                            <div class="post-meta" style="display: flex; flex-direction: column; align-items: flex-end;">
+                                <div class="text-uppercase font-sm letter-spacing-1 mr-3" th:text="'글쓴이: ' + ${board.member.name}">게시자</div>
+                                <div class="text-uppercase font-sm letter-spacing-1" th:text="${@dateTimeFormatterUtil.formatLocalDateTime(board.regDate)}">작성일</div>
+                            </div>
+                        </div>
+                        <div class="post-body">
+                            <!-- th:text => 그냥 문자로 출력, 태그도 문자로 출력 -->
+                            <!-- th:utext => 그냥 문자는 문자 출력, 태그는 태그로 출력 -->
+                            <div class="entry-content" th:utext="${board.content}"></div>
+
+                            <div class="post-tags py-4">
+                                <a href="#">#Health</a>
+                                <a href="#">#Game</a>
+                                <a href="#">#Tour</a>
+                            </div>
+
+
+                            <div class="tags-share-box center-box d-flex text-center justify-content-between border-top border-bottom py-3">
+
+                                <span class="single-comment-o"><i class="fa fa-comment-o"></i>[[${commentCount}]] comment</span>
+
+                                <div class="list-posts-share" th:if="${currentUser == board.member.email}">
+                                    <a th:href="'/rewrite/' + ${board.id}" style="cursor: pointer;">수정</a>
+                                    <a th:onclick="'deleteBoard(' + ${board.id} + ')'" style="cursor: pointer;">삭제</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comment-area my-5"
+                         th:action="@{'/view/' + ${board.id}  + '/' + ${items.number}}" method="get"
+                         th:object="${items}">
+                        <h3 class="mb-4 text-center">[[${commentCount}]]개의 댓글</h3>
+                        <div class="comment-area-box media"
+                             th:each="item, status : ${items.getContent()}">
+                            <img alt="" src="/images/empty.jpg" style="width: 150px;"
+                                 class="img-fluid float-left mr-3 mt-2">
+
+                            <div class="media-body ml-4">
+                                <h4 class="mb-0" th:text="${item.member.name}"></h4>
+                                <span class="date-comm font-sm text-capitalize text-color"
+                                      th:utext="'&lt;i class=&quot;ti-time mr-2&quot;&gt;&lt;/i&gt;' + ${#temporals.format(item.regDate, 'yyyy년 M월 d일')}">
+                                </span>
+
+                                <div class="comment-content mt-3">
+                                    <p th:text="${item.content}"></p>
+                                </div>
+                                <div class="comment-meta mt-4 mt-lg-0 mt-md-0">
+                                    <a href="#" class="text-underline ">Reply</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <nav aria-label="Page navigation example"
+                         th:with="start=${(items.number/maxPage) * maxPage + 1},
+                                     end=(${(items.totalPages == 0) ? 1 : (start + (maxPage - 1) < items.totalPages ? start + (maxPage - 1) : items.totalPages)})">
+                        <ul class="pagination d-flex justify-content-center">
+                            <li class="page-item" th:classappend="${items.first} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="'/view/' + ${board.id} + '/' + ${items.number - 1}">이전</a>
+                            </li>
+
+                            <li class="page-item"
+                                th:each="page : ${#numbers.sequence(start, end)}"
+                                th:classappend="${items.number eq page-1} ? 'active' : ''"> <!-- 현재 페이지 활성화 -->
+                                <!--/* th:inline="text" => 태그 내부에 출력되는 타임리프 변수 값을 문자로 처리 */-->
+                                <a class="page-link" th:inline="text"
+                                   th:href="'/view/' + ${board.id} + '/' + ${page - 1}">[[${page}]]</a>
+                            </li>
+
+                            <li class="page-item" th:classappend="${items.last} ? 'disabled'">
+                                <a class="page-link"
+                                   th:href="'/view/' + ${board.id} + '/' + ${items.number + 1}">다음</a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <form class="comment-form mb-5 gray-bg p-5" id="comment-form" th:object="${commentFormDto}">
+                        <h3 class="mb-4 text-center">댓글 남기기</h3>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <textarea class="form-control mb-3" id="content" cols="30" rows="5" placeholder="Comment"></textarea>
+                            </div>
+                        </div>
+
+                        <input class="btn btn-primary" type="button" name="submit-contact" id="submit_contact" value="등록" onclick="addComment();">
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- 각 페이지의 JS가 작성될 위치 지정 -->
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        function addComment() {
+            var token = $("meta[name='_csrf']").attr("content");
+            var header = $("meta[name='_csrf_header']").attr("content");
+
+            var commentFormDto = {
+                boardId: $("#boardId").val(),
+                content: $("#content").val()
+            };
+
+            // JSON 형식으로 변환
+            var param = JSON.stringify(commentFormDto);
+
+            $.ajax({
+                type: 'POST',
+                url: '/comment/insert',
+                contentType: "application/json",
+                data: param,
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader(header, token);
+                },
+                dataType: "json",
+                cache: false,
+                success: function(response) {
+                    $('#content').val(''); // 입력칸 초기화
+
+                    alert('댓글이 등록되었습니다.');
+
+                    location.reload(true);
+                },
+                error: function(jqXHR, status, error) {
+                    console.log("result: " + jqXHR.responseText + ", statusCode: " + status);
+
+                    if (jqXHR.status == '401') { // 로그인 안된 경우
+                        alert('로그인 후 이용해주세요.');
+                        location.href = '/login';
+                    } else {
+                        alert(jqXHR.responseText);
+                    }
+                }
+            });
+        }
+
+        function deleteBoard(boardId) {
+            const cancelConf = confirm("삭제하시겠습니까?");
+            if (!cancelConf) return; // 취소버튼 선택시
+
+            var token = $("meta[name='_csrf']").attr("content");
+            var header = $("meta[name='_csrf_header']").attr("content");
+
+            $.ajax({
+				url : "/delete/" + boardId,
+				type : "DELETE",
+				contentType : "application/json",
+				beforeSend : function(xhr) {
+				    //데이터를 전송하기 전에 헤더에 csrf 값을 설정
+				    xhr.setRequestHeader(header, token);
+				},
+				dataType : "json",
+				cache : false,
+				success : function(result, status) {
+
+				    // 게시물 삭제 후 list로 돌아가기
+				    location.href = '/list';
+				},
+				error : function(jqXHR, status, error) {
+                    if(jqXHR.status == '401') {
+                        alert('로그인 후 이용해주세요.');
+                        location.href = '/members/login';
+                    } else {
+                        alert(jqXHR.responseText);
+                    }
+                }
+			});
+        }
+    </script>
+</th:block>
+
+</html>

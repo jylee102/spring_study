@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+
+<th:block layout:fragment="css">
+  <style>
+    .floating-button {
+      position: fixed;
+      bottom: 50px;
+      right: 50px;
+    }
+
+    .floating-button > button {
+      width: 70px !important;
+      height: 70px !important;
+    }
+
+    .floating-button > button > i {
+      font-size: xx-large;
+    }
+
+    .modal-content {
+      background: white;
+      color: black;
+    }
+  </style>
+</th:block>
+
+<head>
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+</head>
+
+<body>
+  <div layout:fragment="content" class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">내역</h4>
+          <p class="card-description"> Add class <code>.table-dark</code>
+          </p>
+          <form th:action="@{'/' + ${items.number}}" method="get"
+                th:object="${items}" class="table-responsive">
+            <table class="table table-hover table-striped">
+              <thead>
+              <tr>
+                <th> 날짜 </th>
+                <th> 자산 </th>
+                <th> 분류 </th>
+                <th> 내용 </th>
+                <th> 금액 </th>
+              </tr>
+              </thead>
+              <tbody class="table-group-divider">
+              <tr th:each="item, status : ${items.getContent()}"
+                  th:if="${item.category.type != null}"
+                  th:style="${item.category.type == T(com.expenseTracker.constant.Type).INCOME ? 'color: #007bff;' : 'color: red;'}"
+                  class="clickable-row" th:onclick="'displayData(\'' + ${item.id} + '\');'">
+                <td th:text="${@dateTimeFormatterUtil.formatLocalDateTime(item.date)}"></td>
+                <td th:text="${item.asset.name}"></td>
+                <td th:text="${item.category.name}"></td>
+                <td th:text="${item.description}"></td>
+                <td th:text="${@numberFormatterUtil.formatAmount(item.amount)}"></td>
+              </tr>
+              </tbody>
+            </table>
+          </form>
+
+          <nav aria-label="Page navigation example"
+               th:with="start=${(items.number/maxPage) * maxPage + 1},
+               end=(${(items.totalPages == 0) ? 1 : (start + (maxPage - 1) < items.totalPages ? start + (maxPage - 1) : items.totalPages)})">
+            <ul class="pagination d-flex justify-content-center">
+              <li class="page-item" th:classappend="${items.first} ? 'disabled'">
+                <a class="page-link"
+                   th:href="'/' + ${items.number - 1}">이전</a>
+              </li>
+
+              <li class="page-item"
+                  th:each="page : ${#numbers.sequence(start, end)}"
+                  th:classappend="${items.number eq page-1} ? 'active' : ''">
+                <a class="page-link" th:inline="text"
+                   th:href="'/' + ${page - 1}">[[${page}]]</a>
+              </li>
+
+              <li class="page-item" th:classappend="${items.last} ? 'disabled'">
+                <a class="page-link"
+                   th:href="'/' + ${items.number + 1}">다음</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <div class="floating-button">
+      <button type="button" onclick="$('#date').val(getTodayDate()); $('#myModal').modal('show');"
+              class="btn btn-dribbble btn-rounded btn-icon">
+        <i class="mdi mdi-plus"></i>
+      </button>
+    </div>
+
+    <!-- Modal -->
+    <div id="dtlModal" class="modal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">상세 정보</h5>
+            <button type="button" style="border: none;" class="btn-close" onclick="$('#dtlModal').modal('hide')" aria-label="Close">X</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>유형:</label>
+              <p id="displayTType"></p>
+            </div>
+            <div class="form-group">
+              <label>날짜:</label>
+              <p id="displayTDate"></p>
+            </div>
+            <div class="form-group">
+              <label>자산:</label>
+              <p id="displayTAsset"></p>
+            </div>
+            <div class="form-group">
+              <label>카테고리:</label>
+              <p id="displayTCategory"></p>
+            </div>
+            <div class="form-group">
+              <label>금액:</label>
+              <p id="displayTAmount"></p>
+            </div>
+            <div class="form-group">
+              <label>내용:</label>
+              <p id="displayTDescription"></p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary enableEditBtn" onclick="enableEdit()">수정</button>
+            <button type="button" class="btn btn-secondary deleteBtn">삭제</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="myModal" class="modal" tabindex="-1">
+      <div class="modal-dialog">
+        <form class="modal-content" th:object="${transactionFormDto}" name="transactionForm">
+          <div class="modal-header">
+            <h5 class="modal-title">거래 추가</h5>
+            <button type="button" style="border: none;" class="btn-close" onclick="$('#myModal').modal('hide')" aria-label="Close">X</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group dataTables_wrapper">
+              <label>유형:</label>
+              <select id="type" class="form-select" style="color: white;">
+                <option value="income">수입</option>
+                <option value="expense">지출</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label th:for="date">날짜:</label>
+              <input type="date" class="form-control" th:field="*{date}">
+            </div>
+            <div class="form-group dataTables_wrapper">
+              <label th:for="asset">자산:</label>
+              <select class="form-select" th:field="*{asset}" style="color: white;">
+                <option th:each="a : ${assets}" th:text="${a.name}" th:value="${a.id}"></option>
+              </select>
+            </div>
+            <div class="form-group dataTables_wrapper">
+              <label th:for="category">카테고리:</label>
+              <select class="form-select" th:field="*{category}" style="color: white;">
+                <option th:each="c : ${incomeCategories}" th:text="${c.name}" th:value="${c.id}"></option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label th:for="amount">금액:</label>
+              <input type="text" class="form-control" th:field="*{amount}" onkeyup="inputNumberFormat(this)" style="border: 1px solid gray;">
+            </div>
+            <div class="form-group">
+              <label th:for="description">내용:</label>
+              <textarea class="form-control" th:field="*{description}"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" onclick="beforeSubmit()" class="btn btn-primary">저장</button>
+          </div>
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+
+<th:block layout:fragment="script">
+<script th:inline="javascript">
+  var errorMessage = [[${errorMessage}]];
+  if(errorMessage != null || errorMessage == "") alert(errorMessage);
+
+  // ★ 헤더에 있는 토큰 값을 가지고 온다. (반드시 같이 전송해야 함)
+  var token = $("meta[name='_csrf']").attr("content");
+  var header = $("meta[name='_csrf_header']").attr("content");
+
+  // yyyy-MM-dd 형식으로 날짜를 변환하는 함수
+  function formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+  }
+
+  // 오늘 날짜를 가져오는 함수
+  function getTodayDate() {
+      var today = new Date();
+      return formatDate(today);
+  }
+
+  // 수입과 지출 선택마다 다른 option
+  $('#type').change(function() {
+    var selectedType = $(this).val();
+
+    if (selectedType === 'income') {
+        $('#category').empty();
+        $.each([[${incomeCategories}]], function(index, category) {
+            $('#category').append('<option value="' + category.id + '">' + category.name + '</option>'); // 수입 카테고리 옵션 추가
+        });
+    } else if (selectedType === 'expense') {
+        $('#category').empty();
+        $.each([[${expenseCategories}]], function(index, category) {
+            $('#category').append('<option value="' + category.id + '">' + category.name + '</option>'); // 지출 카테고리 옵션 추가
+        });
+    }
+  })
+
+  // 천단위 콤마 찍는 함수
+  function inputNumberFormat(obj) {
+      let value = obj.value; // 입력한 가격
+      value = Number(value.replaceAll(',', '')); // 콤마를 제거
+      if (isNaN(value)) {
+          obj.value = 0; // 숫자가 아니면 0으로 바꾼다
+      } else {
+          const formatValue = value.toLocaleString('ko-KR');
+          obj.value = formatValue;
+      }
+  }
+
+  // myModal 초기화
+  $('#myModal').on('hide.bs.modal', function() {
+    $('#type, #asset, #category').each(function() {
+      $(this).val($(this).find('option:first').val());
+    });
+    $('#date').val(getTodayDate());
+    $('#amount, #description').val('');
+  })
+
+  // insert
+  function beforeSubmit() {
+      const f = document.transactionForm;
+
+      let amount = f.amount.value;
+      f.amount.value = Number(amount.replaceAll(',', '')); // 콤마 제거
+
+      // 서버에 전달할 데이터
+      var paramData = {
+        member : f.member.value,
+        date : f.date.value,
+        description : f.description.value,
+        amount : f.amount.value,
+        asset : f.asset.value,
+        category : f.category.value
+      }
+
+      $.ajax({
+        url: '/transaction/insert',
+        type: 'POST',
+        data: paramData, // 직렬화한 Form 데이터를 전송한다.
+        beforeSend : function(xhr) {
+		  // 데이터를 전송하기 전에 헤더에 csrf 토큰을 설정
+		  xhr.setRequestHeader(header, token);
+		},
+        success: function (response) {
+          alert('등록에 성공했습니다.');
+          $('#myModal').modal('hide'); // 모달 닫기
+          location.reload(); // 페이지 리로드
+        },
+        error: function (jqXHR, status, error) {
+          alert(jqXHR.responseText);
+        }
+      });
+  }
+
+  // 세부정보
+  function displayData(itemId) {
+    $.ajax({
+      url: "/transaction/view/" + itemId,
+      method: "GET",
+      success: function(response) {
+        $('#displayTType').text(response.category.type == "INCOME" ? '수입' : '지출');
+        $('#displayTDate').text(formatDate(new Date(response.date)));
+        $('#displayTAmount').text(response.amount);
+        $('#displayTDescription').text(response.description);
+        $('#displayTAsset').text(response.asset.name);
+        $('#displayTCategory').text(response.category.name);
+
+        $('#dtlModal').modal('show');
+      },
+      error: function(xhr, status, error) {
+        alert(jqXHR.responseText);
+      }
+    });
+  }
+
+  // 수정 버튼 누르면
+  function enableEdit() {
+    $('#dtlModal').modal('hide');
+    $('#myModal').modal('show');
+  }
+</script>
+</th:block>
+
+</html>

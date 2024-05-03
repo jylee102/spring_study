@@ -2,14 +2,9 @@ package com.shopmax.controller;
 
 import com.shopmax.dto.MemberFormDto;
 import com.shopmax.entity.Member;
-import com.shopmax.repository.MemberRepository;
 import com.shopmax.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,10 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 @RequiredArgsConstructor
-public class MemberController implements UserDetailsService {
+public class MemberController {
     private final PasswordEncoder passwordEncoder;
     private final MemberService memberService;
-    private final MemberRepository memberRepository;
 
     // 문의하기
     @GetMapping(value = "/members/qa") // localhost/members/qa
@@ -74,18 +68,4 @@ public class MemberController implements UserDetailsService {
         return "member/memberLoginForm"; // 로그인 페이지로 그대로 이동
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // 해당 email 계정을 가진 사용자가 있는지 확인
-        Member member = memberRepository.findByEmail(email);
-
-        if (member == null) { // 사용자가 없다면
-            throw new UsernameNotFoundException(email);
-        }
-        return User.builder()
-                .username(member.getEmail())
-                .password(member.getPassword())
-                .roles(member.getRole().toString())
-                .build();
-    }
 }

@@ -4,19 +4,20 @@ import com.expenseTracker.constant.Type;
 import com.expenseTracker.dto.TransactionFormDto;
 import com.expenseTracker.entity.Asset;
 import com.expenseTracker.entity.Category;
-import com.expenseTracker.entity.Member;
 import com.expenseTracker.entity.Transaction;
 import com.expenseTracker.service.AssetService;
 import com.expenseTracker.service.CategoryService;
 import com.expenseTracker.service.MemberService;
 import com.expenseTracker.service.TransactionService;
+import com.expenseTracker.util.TransactionSerializer;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -72,5 +73,29 @@ public class MainController {
         model.addAttribute("expenseCategories", expenseCategories);
 
         return "index";
+    }
+
+    @GetMapping(value = {"/view/calendar", "/view/calendar/{page}"})
+    public String calendar(HttpServletRequest request,
+                           Model model, Principal principal) {
+        // 로그인 되어 있지 않다면 로그인 페이지로
+        Object httpStatus = request.getAttribute("HttpStatus");
+        if (httpStatus != null && (int) httpStatus == HttpServletResponse.SC_UNAUTHORIZED)
+            return "/members/login";
+
+        // Gson 객체 생성 시 커스텀 어댑터 등록
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Transaction.class, new TransactionSerializer())
+                .create();
+
+
+        Long memberId = memberService.getMember(principal.getName()).getId();// 현재 로그인한 유저
+
+        List<Transaction> transactions = transactionService.getList(memberId);
+        String json = gson.toJson(transactions); // List<Transaction>을 JSON 문자열로 변환
+
+        model.addAttribute("data", json);
+
+        return "calendar";
     }
 }

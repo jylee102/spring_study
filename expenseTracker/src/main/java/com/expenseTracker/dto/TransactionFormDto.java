@@ -10,10 +10,14 @@ import lombok.Setter;
 import org.modelmapper.ModelMapper;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Getter
 @Setter
 public class TransactionFormDto {
+
+    private Long id;
 
     @NotNull
     private Member member;
@@ -37,12 +41,16 @@ public class TransactionFormDto {
 
     // dto -> entity
     public Transaction createTransaction() {
-        return modelMapper.map(this, Transaction.class);
+        Transaction transaction = modelMapper.map(this, Transaction.class);
+        transaction.setDate(LocalDateTime.of(this.date, LocalTime.now()));
+        return transaction;
     }
 
     // entity -> dto
     public static TransactionFormDto of(Transaction transaction) {
-        return modelMapper.map(transaction, TransactionFormDto.class);
+        TransactionFormDto transactionFormDto = modelMapper.map(transaction, TransactionFormDto.class);
+        transactionFormDto.setDate(transaction.getDate().toLocalDate());
+        return transactionFormDto;
     }
 }
 

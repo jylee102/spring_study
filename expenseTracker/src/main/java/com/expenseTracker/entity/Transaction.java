@@ -1,11 +1,13 @@
 package com.expenseTracker.entity;
 
+import com.expenseTracker.dto.TransactionFormDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "transactions")
@@ -32,4 +34,12 @@ public class Transaction {
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
+
+    public void update(TransactionFormDto transactionFormDto) {
+        this.date = transactionFormDto.getDate().atTime(LocalTime.now());
+        this.description = transactionFormDto.getDescription();
+        this.amount = transactionFormDto.getAmount();
+        this.asset = transactionFormDto.getAsset();
+        this.category = transactionFormDto.getCategory();
+    }
 }

@@ -48,6 +48,9 @@ dependencies {
 
 	// modelmapper
 	implementation group: 'org.modelmapper', name: 'modelmapper', version: '2.4.2'
+
+	// gson(List를 JSON 문자열로 변환하기 위해)
+	implementation 'com.google.code.gson:gson:2.8.8'
 }
 
 tasks.named('test') {

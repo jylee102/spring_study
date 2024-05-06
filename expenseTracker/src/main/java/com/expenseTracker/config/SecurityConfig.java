@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -37,10 +38,18 @@ public class SecurityConfig {
         ).logout(logout -> logout
                 .logoutRequestMatcher(new AntPathRequestMatcher("/members/logout")) // 로그아웃시 이동할 URL
                 .logoutSuccessUrl("/") // 로그아웃 성공시 이동할 URL
+                .invalidateHttpSession(true) // 세션 무효화
+                .deleteCookies("JSESSIONID") // 쿠키 삭제
 
         // 4. 인증되지 않은 사용자가 리소스에 접근시 설정
         ).exceptionHandling(handling -> handling
                 .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+
+        ).sessionManagement(sessionManagement -> sessionManagement
+                .sessionFixation().migrateSession() // 세션 고정 보호 정책
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // 세션 생성 정책
+                .invalidSessionUrl("/members/login") // 만료된 세션으로 요청이 온 경우 이동할 URL
+                .maximumSessions(1).expiredUrl("/members/login?expired=true") // 동시 세션 제어 및 만료된 세션 처리
 
         ).rememberMe(Customizer.withDefaults()); // 로그인 이후 세션을 통해 로그인 유지
 

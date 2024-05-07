@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+
+<th:block layout:fragment="css">
+    <style>
+        .card .card-body {
+            padding: 1.25rem;
+        }
+
+        .col-sm-1 {
+            text-align: center;
+        }
+
+        .cloud { background: rgba(228, 234, 236, 1); }
+        .red { background: rgba(255, 99, 71, 1) }
+        .orange { background: rgba(247, 167, 0, 1); }
+        .yellow { background: rgba(249, 233, 0, 1); }
+        .green { background: rgba(153, 198, 109, 1); }
+        .moss { background: rgba(0, 128, 0, 1); }
+        .blue { background: rgba(36, 118, 226, 1); }
+        .lavender { background: rgba(204, 100, 195, 1); }
+
+        .color-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .color-box {
+            width: 15px;
+            height: 15px;
+            margin: 5px;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <ul class="nav">
+        <li class="col-12 grid-margin nav-item">
+            <div class="card">
+                <div class="card-body">
+                    <a class="nav-link" data-toggle="collapse" href="#incomeCategoryForm" aria-expanded="false" aria-controls="ui-basic">
+                        <h4 class="card-title" style="margin: 0; display: flex; justify-content: space-between;">
+                            <div>수입 카테고리 관리</div>
+                            <i class="mdi mdi-chevron-down"></i>
+                        </h4>
+                    </a>
+                    <form name="incomeCategoryForm" method="post" action="/updateIncomeCategory" class="collapse show" id="incomeCategoryForm">
+                        <hr>
+                        <p class="card-description" style="padding-left: 1.5rem;">
+                            수입 카테고리
+                        </p>
+                        <ul class="sortable">
+                            <li th:each="ic, status : ${incomeCategories}"
+                                th:attr="data-id=${status.index}" class="sortable-item row"
+                                style="display: flex; align-items: center; margin: 10px auto;">
+                                <div class="col-sm-1">
+                                    <i class="mdi mdi-minus-circle" style="color: maroon"></i>
+                                </div>
+                                <div class="col-sm-7">
+                                    <span th:text="${ic.name}" class="category-text"></span>
+                                    <input type="text" class="form-control category-input" style="display: none;">
+                                </div>
+                                <div class="col-sm-3" style="display: flex; justify-content: space-around; align-items: center;">
+                                    <button type="button" class="btn openColorPalette green"
+                                            style="width: 25px; height: 25px;"
+                                            data-bs-toggle="popover"
+                                            data-bs-title="Color Palette" data-bs-html="true"
+                                            data-bs-content='
+                                                <div class="color-container">
+                                                    <span class="color-box cloud"></span>
+                                                    <span class="color-box red"></span>
+                                                    <span class="color-box orange"></span>
+                                                    <span class="color-box yellow"></span>
+                                                    <span class="color-box green"></span>
+                                                    <span class="color-box moss"></span>
+                                                    <span class="color-box blue"></span>
+                                                    <span class="color-box lavender"></span>
+                                                </div>'>
+
+                                    </button>
+                                    <button type="button" class="edit-button"
+                                            style="background-color: inherit; border: none; color: white">
+                                        <i class="mdi mdi-pencil"></i>
+                                    </button>
+                                    <div style="display: flex; flex-direction: column; font-size: 80%;">
+                                        <i class="mdi mdi-chevron-up"></i>
+                                        <i class="mdi mdi-chevron-down"></i>
+                                    </div>
+                                </div>
+                                <div class="col-sm-1"></div>
+                            </li>
+                        </ul>
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    </form>
+                </div>
+            </div>
+        </li>
+
+        <li class="col-12 grid-margin nav-item">
+            <div class="card">
+                <div class="card-body">
+                    <a class="nav-link" data-toggle="collapse" href="#expenseCategoryForm" aria-expanded="false" aria-controls="ui-basic">
+                        <h4 class="card-title" style="margin: 0; display: flex; justify-content: space-between;">
+                            <div>지출 카테고리 관리</div>
+                            <i class="mdi mdi-chevron-down"></i>
+                        </h4>
+                    </a>
+                    <form name="expenseCategoryForm" method="post" action="/updateExpenseCategory" class="collapse show" id="expenseCategoryForm">
+                        <hr>
+                        <p class="card-description" style="padding-left: 1.5rem;">
+                            지출 카테고리
+                        </p>
+                        <ul class="sortable">
+                            <li th:each="ec, status : ${expenseCategories}"
+                                th:attr="data-id=${status.index}" class="sortable-item row"
+                                style="display: flex; align-items: center; margin: 10px auto;">
+                                <div class="col-sm-1">
+                                    <i class="mdi mdi-minus-circle"></i>
+                                </div>
+                                <div class="col-sm-8" th:text="${ec.name}"></div>
+                                <div class="col-sm-2" style="display: flex; justify-content: space-around;">
+                                    <i class="mdi mdi-pencil" style="display: flex; align-items: center;"></i>
+                                    <div style="display: flex; flex-direction: column; font-size: 80%;">
+                                        <i class="mdi mdi-chevron-up"></i>
+                                        <i class="mdi mdi-chevron-down"></i>
+                                    </div>
+                                </div>
+                                <div class="col-sm-1"></div>
+                            </li>
+                        </ul>
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    </form>
+                </div>
+            </div>
+        </li>
+    </ul>
+</div>
+
+<th:block layout:fragment="script">
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery UI -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script th:inline="javascript">
+        $(document).ready(function() {
+            // 팝오버에서 색상 선택
+            // 클릭된 버튼 내부의 .color-box에 대한 클릭 이벤트 처리
+            $(document).on('click', '.openColorPalette .color-box', function() {
+                console.log('clicked');
+                var selectedColorClass = $(this).attr('class').split(' ')[1];
+                var popoverBtn = $(this).closest('.btn');
+                popoverBtn.removeClass().addClass('btn').addClass(selectedColorClass);
+                $('[data-bs-toggle="popover"]').popover('hide');
+            });
+
+            $('.edit-button').click(function() {
+                var categoryRow = $(this).closest('.sortable-item');
+                var categoryText = categoryRow.find('.category-text');
+                var categoryInput = categoryRow.find('.category-input');
+
+                if (categoryText.is(':visible')) {
+                    categoryText.hide();
+                    categoryInput.val(categoryText.text()).show().focus();
+                } else {
+                    categoryInput.hide();
+                    categoryText.text(categoryInput.val()).show();
+                }
+            });
+
+            $('ul.sortable').sortable({
+                update: function(event, ui) {
+                    var form = ui.item.closest('form');
+                    var data = [];
+
+                    $(this).find('li').each(function() {
+                        data.push($(this).attr('data-id'));
+                    });
+
+                    $.ajax({
+                        url: form.attr('action'),
+                        type: 'POST',
+                        data: JSON.stringify(data),
+                        contentType: 'application/json',
+                        success: function(response) {
+                            console.log('Order updated successfully');
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error updating order:', error);
+                        }
+                    });
+                }
+            });
+
+            const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+            const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+        });
+    </script>
+</th:block>
+
+</html>

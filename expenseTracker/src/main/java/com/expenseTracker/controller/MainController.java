@@ -22,6 +22,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.security.Principal;
 import java.util.List;
@@ -51,28 +53,42 @@ public class MainController {
         Long memberId = memberService.getMember(principal.getName()).getId();// 현재 로그인한 유저
         Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 10);
 
-        Page<Transaction> items = transactionService.getPage(memberId, pageable);
-
-        model.addAttribute("member", memberId);
-
-        model.addAttribute("items", items);
-        model.addAttribute("maxPage", 5);
+        // 필요한 데이터를 미리 로드
+        loadInitialData(model, memberId, pageable);
 
         /* 모달 관련 */
         model.addAttribute("transactionFormDto", new TransactionFormDto());
+
+        return "index";
+    }
+
+    @GetMapping("/loadItems")
+    @ResponseBody
+    public Page<Transaction> loadItems(HttpServletRequest request, Principal principal,
+                                       @RequestParam(name = "page", required = false, defaultValue = "0") int page) {
+        Long memberId = memberService.getMember(principal.getName()).getId();// 현재 로그인한 유저
+        Pageable pageable = PageRequest.of(page, 10);
+        return transactionService.getPage(memberId, pageable);
+    }
+
+    private void loadInitialData(Model model, Long memberId, Pageable pageable) {
+        Page<Transaction> items = transactionService.getPage(memberId, pageable);
+
+        model.addAttribute("member", memberId);
+        model.addAttribute("items", items);
+        model.addAttribute("maxPage", 5);
 
         List<Asset> assets = assetService.getAssets(memberId);
         List<Category> incomeCategories = categoryService.getCategories(memberId, Type.INCOME);
         List<Category> expenseCategories = categoryService.getCategories(memberId, Type.EXPENSE);
 
-        if (assets.isEmpty() || incomeCategories.isEmpty() || expenseCategories.isEmpty())
+        if (assets.isEmpty() || incomeCategories.isEmpty() || expenseCategories.isEmpty()) {
             model.addAttribute("errorMessage",
                     "설정/관리를 확인해주세요.\n(카테고리들은 각각 적어도 하나씩 존재해야 합니다.)");
+        }
         model.addAttribute("assets", assets);
         model.addAttribute("incomeCategories", incomeCategories);
         model.addAttribute("expenseCategories", expenseCategories);
-
-        return "index";
     }
 
     @GetMapping(value = {"/view/calendar", "/view/calendar/{page}"})
@@ -97,5 +113,15 @@ public class MainController {
         model.addAttribute("data", json);
 
         return "calendar";
+    }
+
+    @GetMapping(value = "/settings/categories")
+    public String categories(Model model, Principal principal) {
+        Long memberId = memberService.getMember(principal.getName()).getId();
+        List<Category> incomeCategories = categoryService.getCategories(memberId, Type.INCOME);
+        List<Category> expenseCategories = categoryService.getCategories(memberId, Type.EXPENSE);
+        model.addAttribute("incomeCategories", incomeCategories);
+        model.addAttribute("expenseCategories", expenseCategories);
+        return "settings/categories";
     }
 }

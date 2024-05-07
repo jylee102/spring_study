@@ -58,15 +58,6 @@
               </tr>
               </thead>
               <tbody class="table-group-divider">
-              <tr th:each="item, status : ${items.getContent()}"
-                  th:style="${item.category.type != null && item.category.type == T(com.expenseTracker.constant.Type).INCOME ? 'color: #007bff;' : 'color: red;'}"
-                  class="clickable-row" th:onclick="'displayData(\'' + ${item.id} + '\');'">
-                <td th:text="${@dateTimeFormatterUtil.formatLocalDateTime(item.date)}"></td>
-                <td th:text="${item.asset.name}"></td>
-                <td th:text="${item.category.name}"></td>
-                <td th:text="${item.description}"></td>
-                <td th:text="${@numberFormatterUtil.formatAmount(item.amount)}"></td>
-              </tr>
               </tbody>
             </table>
           </form>
@@ -110,7 +101,10 @@
         <form class="modal-content" action="/transaction/delete" method="post" name="deleteForm">
           <div class="modal-header">
             <h5 class="modal-title">상세 정보</h5>
-            <button type="button" style="border: none;" class="btn-close" onclick="$('#dtlModal').modal('hide')" aria-label="Close">X</button>
+            <button type="button" style="border: none;" class="btn-close"
+                    onclick="$('#dtlModal').modal('hide')" aria-label="Close">
+              <i class="mdi mdi-window-close"></i>
+            </button>
           </div>
           <div class="modal-body">
             <input type="hidden" name="id" class="displayId" />
@@ -162,7 +156,10 @@
         <form class="modal-content" th:object="${transactionFormDto}" name="insertForm">
           <div class="modal-header">
             <h5 class="modal-title">거래 추가</h5>
-            <button type="button" style="border: none;" class="btn-close" onclick="$('#insertModal').modal('hide')" aria-label="Close">X</button>
+            <button type="button" style="border: none;" class="btn-close"
+                    onclick="$('#insertModal').modal('hide')" aria-label="Close">
+              <i class="mdi mdi-window-close"></i>
+            </button>
           </div>
           <div class="modal-body">
             <input type="hidden" th:field="*{id}" />
@@ -212,7 +209,10 @@
         <form class="modal-content" name="editForm">
           <div class="modal-header">
             <h5 class="modal-title">내역 수정</h5>
-            <button type="button" style="border: none;" class="btn-close" onclick="$('#editModal').modal('hide')" aria-label="Close">X</button>
+            <button type="button" style="border: none;" class="btn-close"
+                    onclick="$('#editModal').modal('hide')" aria-label="Close">
+              <i class="mdi mdi-window-close"></i>
+            </button>
           </div>
           <div class="modal-body">
             <input type="hidden" name="id" class="displayId" />
@@ -265,6 +265,82 @@
 <script th:inline="javascript">
   var errorMessage = [[${errorMessage}]];
   if(errorMessage != null || errorMessage == "") alert(errorMessage);
+
+  $(document).ready(function() {
+      // 초기 데이터 로드
+      loadInitialData();
+
+      // 페이지 버튼 클릭 시 데이터 로드
+      $(document).on("click", ".page-link", function(event) {
+          event.preventDefault();
+          var page = $(this).data("page");
+          loadItems(page);
+      });
+  });
+
+  function loadInitialData() {
+      // 페이지 로딩 시 초기 데이터 로드
+      $.ajax({
+          url: "/loadItems",
+          method: "GET",
+          success: function(data) {
+              // 성공적으로 데이터를 받아온 경우 처리
+              // 예를 들어, 받아온 데이터를 테이블에 출력하는 등의 작업 수행
+              renderItems(data); // 데이터를 렌더링하는 함수 호출
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+              // 데이터를 받아오지 못한 경우 에러 처리
+              console.error("Error loading initial data: " + textStatus, errorThrown);
+          }
+      });
+  }
+
+  function loadItems(page) {
+      // 페이지 버튼 클릭 시 추가 데이터 로드
+      $.ajax({
+          url: "/loadItems",
+          method: "GET",
+          data: { page: page },
+          success: function(data) {
+              // 성공적으로 데이터를 받아온 경우 처리
+              // 예를 들어, 받아온 데이터를 테이블에 추가하는 등의 작업 수행
+              renderItems(data); // 데이터를 렌더링하는 함수 호출
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+              // 데이터를 받아오지 못한 경우 에러 처리
+              console.error("Error loading additional data: " + textStatus, errorThrown);
+          }
+      });
+  }
+
+  // 데이터를 테이블에 렌더링하는 함수
+  function renderItems(data) {
+      var tableBody = $(".table tbody");
+      tableBody.empty(); // 기존 내용을 비우고 새로운 데이터를 추가할 준비
+
+      // 받아온 데이터를 반복하여 테이블에 추가
+      $.each(data.content, function(index, item) {
+          var row = $("<tr></tr>");
+
+          // 카테고리의 유형에 따라 텍스트 색상 변경
+          var textColor = (item.category.type != null && item.category.type == 'INCOME') ? '#007bff' : 'red';
+          row.css('color', textColor);
+
+          // 각 열에 데이터 추가
+          row.append("<td>" + formatDate(new Date(item.date)) + "</td>");
+          row.append("<td>" + item.asset.name + "</td>");
+          row.append("<td>" + item.category.name + "</td>");
+          row.append("<td>" + item.description + "</td>");
+          row.append("<td>" + item.amount.toLocaleString('ko-KR') + '원' + "</td>");
+
+          // 클릭 시 데이터 상세정보 표시
+          row.addClass("clickable-row");
+          row.attr("onclick", "displayData('" + item.id + "')");
+
+          // 테이블에 행 추가
+          tableBody.append(row);
+      });
+  }
 
   // ★ 헤더에 있는 토큰 값을 가지고 온다. (반드시 같이 전송해야 함)
   var token = $("meta[name='_csrf']").attr("content");

@@ -290,10 +290,14 @@ body {
   left: 14px;
 }
 
-.entry.blue:after { background: rgba(156, 202, 235, 1); }
+.entry.cloud:after { background: rgba(228, 234, 236, 1); }
+.entry.red:after { background: rgba(255, 99, 71, 1) }
 .entry.orange:after { background: rgba(247, 167, 0, 1); }
-.entry.green:after { background: rgba(153, 198, 109, 1); }
 .entry.yellow:after { background: rgba(249, 233, 0, 1); }
+.entry.green:after { background: rgba(153, 198, 109, 1); }
+.entry.moss:after { background: rgba(0, 128, 0, 1); }
+.entry.blue:after { background: rgba(36, 118, 226, 1); }
+.entry.lavender:after { background: rgba(204, 100, 195, 1); }
 
 /* Animations are cool!  */
 @-webkit-keyframes moveFromTopFade {

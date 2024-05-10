@@ -20,6 +20,7 @@ public class TransactionSerializer implements JsonSerializer<Transaction> {
         jsonObject.addProperty("amount", transaction.getAmount());
         jsonObject.addProperty("description", transaction.getDescription());
         jsonObject.addProperty("category", transaction.getCategory().getName());
+        jsonObject.addProperty("color", transaction.getCategory().getColor());
 
         // LocalDateTime -> Instant -> Date -> moment.js 형태로 변환
         Instant instant = transaction.getDate().atZone(ZoneId.systemDefault()).toInstant();

@@ -22,10 +22,10 @@
       this.drawHeader();
 
       // 잔존하는 legend 삭제
-      var previousLegend = this.el.querySelector('.legend');
-      if (previousLegend) {
-        previousLegend.parentNode.removeChild(previousLegend);
-      }
+      var previousLegends = this.el.querySelectorAll('.legend');
+      previousLegends.forEach(function (legend) {
+        legend.parentNode.removeChild(legend);
+      });
 
       // Draw Month
       this.drawMonth();
@@ -33,7 +33,7 @@
       // Draw Legend after Month asynchronously
       setTimeout(() => {
           this.drawLegend();
-      }, 1000);
+      }, 500);
   }
 
   Calendar.prototype.drawHeader = function() {
@@ -165,7 +165,7 @@
       }, []);
 
       todaysEvents.forEach(function(ev) {
-        var evSpan = createElement('span', 'green'); // ev.color
+        var evSpan = createElement('span', ev.color);
         element.appendChild(evSpan);
       });
     }
@@ -272,7 +272,7 @@
 
     events.forEach(function(ev) {
       var div = createElement('div', 'event');
-      var square = createElement('div', 'event-category ' + 'green'); //ev.color
+      var square = createElement('div', 'event-category ' + ev.color);
       var span = createElement('span', '', ev.description == '' ? ev.category : ev.description);
 
       div.appendChild(square);
@@ -315,7 +315,7 @@
 
     var legend = createElement('div', 'legend');
     var calendars = this.events.map(function(ev) {
-      return ev.category + '|' + 'green'; // ev.color
+      return ev.category + '|' + ev.color;
     }).reduce(function(memo, ev) {
       if(memo.indexOf(ev) === -1) {
         memo.push(ev);

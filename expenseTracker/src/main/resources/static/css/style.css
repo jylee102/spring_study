@@ -8862,7 +8862,7 @@ pre {
   .jsgrid .jsgrid-table .jsgrid-filter-row select:focus, .jsgrid .jsgrid-table .jsgrid-filter-row input:focus[type=number], .select2-container--default .select2-selection--single:focus, .select2-container--default .select2-selection--single .select2-search__field:focus, .typeahead:focus,
   .tt-query:focus,
   .tt-hint:focus {
-    color: #495057;
+    color: white;
     background-color: #fff;
     border-color: #80bdff;
     outline: 0;
@@ -21131,5 +21131,14 @@ div.tagsinput {
   width: 100%;
   -webkit-flex-grow: 1;
   flex-grow: 1; }
+
+.cloud { background: rgba(228, 234, 236, 1); }
+.red { background: rgba(255, 99, 71, 1) }
+.orange { background: rgba(247, 167, 0, 1); }
+.yellow { background: rgba(249, 233, 0, 1); }
+.green { background: rgba(153, 198, 109, 1); }
+.moss { background: rgba(0, 128, 0, 1); }
+.blue { background: rgba(36, 118, 226, 1); }
+.lavender { background: rgba(204, 100, 195, 1); }
 
 /*# sourceMappingURL=maps/style.css.map */

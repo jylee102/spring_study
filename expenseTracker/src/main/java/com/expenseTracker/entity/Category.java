@@ -20,17 +20,23 @@ public class Category {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "category_type")
-    private Type type; // 주문상태
+    private Type type;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
 
+    private String color;
+
+    private int position; // 순서
+
     public Category() {};
 
-    public Category(String name, Type type, Member member) {
+    public Category(String name, Type type, Member member, String color, int position) {
         this.name = name;
         this.type = type;
         this.member = member;
+        this.color = color;
+        this.position = position;
     }
 }

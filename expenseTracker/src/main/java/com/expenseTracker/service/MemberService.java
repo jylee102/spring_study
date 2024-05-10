@@ -46,20 +46,20 @@ public class MemberService implements UserDetailsService {
         String[] assetNames = {"현금", "은행", "카드", "저축"};
 
         // 수입 카테고리 생성 및 저장
-        for (String categoryName : incomeCategories) {
-            Category category = new Category(categoryName, Type.INCOME, member);
+        for (int i = 0; i < incomeCategories.length; i++) {
+            Category category = new Category(incomeCategories[i], Type.INCOME, member, "cloud", i + 1);
             categoryRepository.save(category);
         }
 
         // 지출 카테고리 생성 및 저장
-        for (String categoryName : expenseCategories) {
-            Category category = new Category(categoryName, Type.EXPENSE, member);
+        for (int i = 0; i < expenseCategories.length; i++) {
+            Category category = new Category(expenseCategories[i], Type.EXPENSE, member, "cloud", i + 1);
             categoryRepository.save(category);
         }
 
         // 자산 생성 및 저장
-        for (String assetName : assetNames) {
-            Asset asset = new Asset(assetName, member);
+        for (int i = 0; i < assetNames.length; i++) {
+            Asset asset = new Asset(assetNames[i], member, 0.0, i + 1);
             assetRepository.save(asset);
         }
     }

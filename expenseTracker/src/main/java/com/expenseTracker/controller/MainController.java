@@ -62,33 +62,38 @@ public class MainController {
         return "index";
     }
 
-    @GetMapping("/loadItems")
+    @GetMapping(value = {"/loadItems", "/loadItems/{page}"})
     @ResponseBody
     public Page<Transaction> loadItems(HttpServletRequest request, Principal principal,
-                                       @RequestParam(name = "page", required = false, defaultValue = "0") int page) {
+                                       @PathVariable("page") Optional<Integer> page) {
         Long memberId = memberService.getMember(principal.getName()).getId();// 현재 로그인한 유저
-        Pageable pageable = PageRequest.of(page, 10);
+        Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 10);
         return transactionService.getPage(memberId, pageable);
     }
 
     private void loadInitialData(Model model, Long memberId, Pageable pageable) {
-        Page<Transaction> items = transactionService.getPage(memberId, pageable);
+        try {
+            Page<Transaction> items = transactionService.getPage(memberId, pageable);
 
-        model.addAttribute("member", memberId);
-        model.addAttribute("items", items);
-        model.addAttribute("maxPage", 5);
+            model.addAttribute("member", memberId);
+            model.addAttribute("items", items);
+            model.addAttribute("maxPage", 5);
 
-        List<Asset> assets = assetService.getAssets(memberId);
-        List<Category> incomeCategories = categoryService.getCategories(memberId, Type.INCOME);
-        List<Category> expenseCategories = categoryService.getCategories(memberId, Type.EXPENSE);
+            List<Asset> assets = assetService.getAssets(memberId);
+            List<Category> incomeCategories = categoryService.getCategories(memberId, Type.INCOME);
+            List<Category> expenseCategories = categoryService.getCategories(memberId, Type.EXPENSE);
 
-        if (assets.isEmpty() || incomeCategories.isEmpty() || expenseCategories.isEmpty()) {
-            model.addAttribute("errorMessage",
-                    "설정/관리를 확인해주세요.\n(카테고리들은 각각 적어도 하나씩 존재해야 합니다.)");
+            if (assets.isEmpty() || incomeCategories.isEmpty() || expenseCategories.isEmpty()) {
+                model.addAttribute("errorMessage",
+                        "설정/관리를 확인해주세요.\n(카테고리들은 각각 적어도 하나씩 존재해야 합니다.)");
+            }
+            model.addAttribute("assets", assets);
+            model.addAttribute("incomeCategories", incomeCategories);
+            model.addAttribute("expenseCategories", expenseCategories);
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "데이터를 불러오는 것에 실패했습니다. 관리자에게 문의하세요.");
         }
-        model.addAttribute("assets", assets);
-        model.addAttribute("incomeCategories", incomeCategories);
-        model.addAttribute("expenseCategories", expenseCategories);
     }
 
     @GetMapping(value = {"/view/calendar", "/view/calendar/{page}"})
@@ -104,7 +109,6 @@ public class MainController {
                 .registerTypeAdapter(Transaction.class, new TransactionSerializer())
                 .create();
 
-
         Long memberId = memberService.getMember(principal.getName()).getId();// 현재 로그인한 유저
 
         List<Transaction> transactions = transactionService.getList(memberId);
@@ -115,13 +119,30 @@ public class MainController {
         return "calendar";
     }
 
+    @GetMapping(value = "/settings/assets")
+    public String assets(Model model, Principal principal) {
+        try {
+            Long memberId = memberService.getMember(principal.getName()).getId();
+            List<Asset> assets = assetService.getAssets(memberId);
+
+            model.addAttribute("assets", assets);
+        } catch (Exception e) {
+            return "/members/login/error";
+        }
+        return "settings/assets";
+    }
+
     @GetMapping(value = "/settings/categories")
     public String categories(Model model, Principal principal) {
-        Long memberId = memberService.getMember(principal.getName()).getId();
-        List<Category> incomeCategories = categoryService.getCategories(memberId, Type.INCOME);
-        List<Category> expenseCategories = categoryService.getCategories(memberId, Type.EXPENSE);
-        model.addAttribute("incomeCategories", incomeCategories);
-        model.addAttribute("expenseCategories", expenseCategories);
+        try {
+            Long memberId = memberService.getMember(principal.getName()).getId();
+            List<Category> incomeCategories = categoryService.getCategories(memberId, Type.INCOME);
+            List<Category> expenseCategories = categoryService.getCategories(memberId, Type.EXPENSE);
+            model.addAttribute("incomeCategories", incomeCategories);
+            model.addAttribute("expenseCategories", expenseCategories);
+        } catch (Exception e) {
+            return "/members/login/error";
+        }
         return "settings/categories";
     }
 }

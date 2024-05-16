@@ -2,20 +2,24 @@ package com.expenseTracker.controller;
 
 import com.expenseTracker.dto.MemberFormDto;
 import com.expenseTracker.entity.Member;
-import com.expenseTracker.repository.MemberRepository;
 import com.expenseTracker.service.MemberService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.hibernate.validator.constraints.Length;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -42,7 +46,18 @@ public class MemberController {
     public String memberForm(@Valid MemberFormDto memberFormDto, BindingResult bindingResult, Model model) {
 
         // 유효성 검증 에러 발생시 회원가입페이지로 이동시킴
-        if (bindingResult.hasErrors()) return "member/memberForm";
+        if (bindingResult.hasErrors()) {
+            StringBuilder sb = new StringBuilder();
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+
+            for (FieldError fieldError : fieldErrors) {
+                sb.append(fieldError.getDefaultMessage());
+                sb.append("\n");
+            }
+
+            model.addAttribute("errorMessage", sb.toString());
+            return "member/memberForm";
+        }
 
         // 유효성 검사를 통과했다면 회원가입 진행
         try {
@@ -62,5 +77,77 @@ public class MemberController {
     public String loginError(Model model) {
         model.addAttribute("loginErrorMsg", "아이디 또는 비밀번호를 확인해주세요.");
         return "member/memberLoginForm"; // 로그인 페이지로 그대로 이동
+    }
+
+    // 개인정보 수정
+    @PostMapping(value = "/members/updateMyInfo")
+    public String updateMyInfo(@Valid MemberFormDto memberFormDto, BindingResult bindingResult,
+                               Model model) {
+
+        if (bindingResult.hasErrors()) {
+            StringBuilder sb = new StringBuilder();
+
+            // 유효성 체크 후 에러 결과를 가져온다.
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors(); // 에러 메시지를 가지고 온다.
+
+            for (FieldError fieldError : fieldErrors) {
+                sb.append(fieldError.getDefaultMessage());
+                sb.append("\n");
+            }
+
+            model.addAttribute("message", sb.toString());
+            return "/settings/myInfo";
+        }
+
+        try {
+            memberService.updateMember(memberFormDto);
+            model.addAttribute("message", "회원 정보가 성공적으로 변경되었습니다.");
+            return "/settings/myInfo";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("message", "회원 정보를 수정하는 도중 에러가 발생했습니다.");
+            return "redirect:/settings/myInfo";
+        }
+    }
+
+    // 비밀번호 변경
+    @PostMapping("/members/changePw")
+    public String changePassword(@RequestParam("currentPassword") String currentPassword,
+                                 @RequestParam("newPassword") String newPassword,
+                                 @RequestParam("confirmPassword") String confirmPassword,
+                                 Model model, Principal principal) {
+
+        Member member = memberService.getMember(principal.getName());
+        model.addAttribute("memberFormDto", MemberFormDto.of(member));
+
+        // 현재 비밀번호 확인
+        if (!memberService.checkPassword(member, currentPassword)) {
+            model.addAttribute("message", "현재 비밀번호가 틀립니다.");
+            return "/settings/myInfo";
+        }
+
+        if (newPassword.length() < 8 || newPassword.length() > 16) {
+            model.addAttribute("message", "비밀번호는 8자 ~ 16자 사이로 입력해주세요.");
+            return "/settings/myInfo";
+        }
+
+        // 이전에 사용된 비밀번호와 새로운 비밀번호가 다른지 확인
+        if (memberService.checkPassword(member, newPassword)) {
+            model.addAttribute("message", "새 비밀번호는 이전에 사용한 비밀번호와 달라야 합니다.");
+            return "/settings/myInfo";
+        }
+
+        // 새로운 비밀번호와 확인 비밀번호 일치 확인
+        if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("message", "새 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+            return "/settings/myInfo";
+        }
+
+        // 비밀번호 업데이트
+        memberService.updatePassword(member, newPassword);
+
+        model.addAttribute("message", "비밀번호가 성공적으로 변경되었습니다.");
+
+        return "/settings/myInfo";
     }
 }

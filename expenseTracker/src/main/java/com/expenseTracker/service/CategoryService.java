@@ -16,6 +16,17 @@ import java.util.List;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
 
+    // 아이디로 카테고리 찾기
+    public Category findById(Long id) throws Exception {
+        return categoryRepository.findById(id)
+                .orElseThrow(EntityNotFoundException::new);
+    }
+
+    // 전체 카테고리의 개수
+    public Long count() {
+        return categoryRepository.count();
+    }
+
     // 로그인한 유저가 설정한 카테고리 불러오기
     public List<Category> getCategories(Long memberId, Type type) throws Exception {
         return categoryRepository.findByMemberIdAndTypeOrderByPosition(memberId, type);

@@ -45,6 +45,8 @@
 
 <th:block layout:fragment="script">
     <script th:inline="javascript">
+        var errorMessage = [[${errorMessage}]];
+        if(errorMessage != null || errorMessage == "") alert(errorMessage);
     </script>
 </th:block>
 </html>

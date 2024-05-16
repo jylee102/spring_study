@@ -22,7 +22,7 @@ public class QAsset extends EntityPathBase<Asset> {
 
     public static final QAsset asset = new QAsset("asset");
 
-    public final NumberPath<Double> amount = createNumber("amount", Double.class);
+    public final NumberPath<Integer> amount = createNumber("amount", Integer.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 

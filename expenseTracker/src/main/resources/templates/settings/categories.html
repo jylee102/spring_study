@@ -253,6 +253,27 @@
         var token = $("meta[name='_csrf']").attr("content");
 		var header = $("meta[name='_csrf_header']").attr("content");
 
+        var originalWidths = []; // 셀 너비를 저장해놓을 공간
+
+        // 셀의 너비 저장(페이지가 로드될 때, 창 크기가 변경될 때)
+        function setOriginalWidths() {
+            var cells = document.querySelectorAll('tbody td');
+            cells.forEach((cell, index) => {
+                originalWidths[index] = cell.offsetWidth;
+            });
+        }
+
+        $(document).ready(function() {
+            setOriginalWidths();
+        });
+
+        window.addEventListener('resize', function(event){
+            clearTimeout(resizeTimeout); // 빠른 크기 전환 처리 위해
+            resizeTimeout = setTimeout(function() {
+                setOriginalWidths();
+            }, 200);
+        });
+
         /* 카테고리 등록 */
         $('.save-btn').on('click', function() {
             var type = $(this).closest('tr').attr('id') === "addIncomeCategory" ? "income" : "expense";
@@ -389,7 +410,6 @@
         }
 
         /* 이름 변경 */
-
         $('.edit-button').click(function() {
             var categoryRow = $(this).closest('.sortable-item');
             var categoryText = categoryRow.find('.category-text');
@@ -432,18 +452,9 @@
         }
 
         /* 순서 변경 */
-
-        var originalWidths = []; // 셀 너비를 저장해놓을 공간
-
         $('table.sortable tbody').sortable({
-            start: function(event, ui) { // 드래그 시작 전에 너비를 저장
-                var cells = document.querySelectorAll('td');
-                cells.forEach((cell, index) => {
-                    originalWidths[index] = cell.offsetWidth;
-                });
-            },
-            sort: function(event, ui) { // 테이블 셀 너비 유지
-                var cells = document.querySelectorAll('td');
+            start: function(event, ui) { // 테이블 셀 너비 유지
+                var cells = document.querySelectorAll('tbody td');
                 cells.forEach((cell, index) => {
                     cell.style.width = originalWidths[index] + 'px';
                 });

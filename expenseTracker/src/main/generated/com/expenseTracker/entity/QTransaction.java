@@ -22,7 +22,7 @@ public class QTransaction extends EntityPathBase<Transaction> {
 
     public static final QTransaction transaction = new QTransaction("transaction");
 
-    public final NumberPath<Double> amount = createNumber("amount", Double.class);
+    public final NumberPath<Integer> amount = createNumber("amount", Integer.class);
 
     public final QAsset asset;
 

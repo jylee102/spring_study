@@ -22,13 +22,13 @@ public class Asset {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    private Double amount;
+    private int amount;
 
     private int position;
 
     public Asset() {}
 
-    public Asset(String name, Member member, Double amount, int position) {
+    public Asset(String name, Member member, int amount, int position) {
         this.name = name;
         this.member = member;
         this.amount = amount;

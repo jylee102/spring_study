@@ -1,5 +1,7 @@
 package com.expenseTracker.repository;
 
+import com.expenseTracker.constant.Type;
+import com.expenseTracker.entity.Category;
 import com.expenseTracker.entity.Transaction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,5 +15,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT t FROM Transaction t WHERE MONTH(t.date) = MONTH(sysdate) AND t.member.id = :memberId order by t.date desc")
     Page<Transaction> findByMemberIdAndDateMonth(@Param("memberId") Long memberId, Pageable pageable);
 
-    List<Transaction> findByMemberId(Long memberId);
+    @Query("SELECT t FROM Transaction t WHERE t.member.id = :memberId AND YEAR(t.date) = :year AND MONTH(t.date) = :month")
+    List<Transaction> getList(@Param("memberId") Long memberId, @Param("year") int year, @Param("month") int month);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.category.id = :categoryId AND YEAR(t.date) = :year AND MONTH(t.date) = :month")
+    int calcTotalAmountForCategory(@Param("categoryId") Long categoryId, @Param("year") int year, @Param("month") int month);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.category.type = :categoryType AND YEAR(t.date) = :year AND MONTH(t.date) = :month")
+    double getTotalAmountOf(@Param("categoryType") Type categoryType, @Param("year") int year, @Param("month") int month);
 }

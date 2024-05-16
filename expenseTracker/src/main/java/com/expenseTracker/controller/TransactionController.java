@@ -2,6 +2,7 @@ package com.expenseTracker.controller;
 
 import com.expenseTracker.dto.TransactionFormDto;
 import com.expenseTracker.entity.Transaction;
+import com.expenseTracker.service.AssetService;
 import com.expenseTracker.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.List;
 public class TransactionController {
 
     private final TransactionService transactionService;
+    private final AssetService assetService;
 
     // 내역 등록(insert)
     @PostMapping(value = "/transaction/insert")
@@ -38,7 +40,7 @@ public class TransactionController {
             return new ResponseEntity<String>(sb.toString(), HttpStatus.BAD_REQUEST);
         }
         try {
-            transactionService.saveTransaction(transactionFormDto);
+            assetService.updateAmount(transactionService.saveTransaction(transactionFormDto), true);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>("등록에 실패했습니다.", HttpStatus.BAD_REQUEST);
@@ -49,9 +51,14 @@ public class TransactionController {
 
     // 내역 확인
     @GetMapping(value = "/transaction/view/{transactionId}")
-    public ResponseEntity<Transaction> view(@PathVariable("transactionId") Long transactionId) {
-        Transaction transaction = transactionService.getDtl(transactionId);
-        return new ResponseEntity<>(transaction, HttpStatus.OK);
+    public ResponseEntity view(@PathVariable("transactionId") Long transactionId) {
+        try {
+            Transaction transaction = transactionService.getDtl(transactionId);
+            return new ResponseEntity<>(transaction, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("내역을 불러오는 것에 실패했습니다.", HttpStatus.BAD_REQUEST);
+        }
     }
 
     // 내역 수정(edit)
@@ -71,7 +78,11 @@ public class TransactionController {
             return new ResponseEntity<String>(sb.toString(), HttpStatus.BAD_REQUEST);
         }
         try {
-            transactionService.updateTransaction(transactionFormDto);
+            Transaction from = transactionService.findById(transactionFormDto.getId());
+            assetService.updateAmount(from, false);
+
+            Transaction to = transactionService.updateTransaction(transactionFormDto);
+            assetService.updateAmount(to, true);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>("수정에 실패했습니다.", HttpStatus.BAD_REQUEST);
@@ -85,6 +96,7 @@ public class TransactionController {
     public String delete(@RequestParam("id") Long id, Model model) {
 
         try {
+            assetService.updateAmount(transactionService.findById(id), false);
             transactionService.deleteTransaction(id);
         } catch (Exception e) {
             e.printStackTrace();

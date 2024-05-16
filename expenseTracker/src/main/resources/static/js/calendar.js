@@ -2,11 +2,10 @@
 
   var today = moment();
 
-  function Calendar(selector, events) {
+  function Calendar(selector) {
     this.el = document.querySelector(selector);
-    this.events = events;
     this.current = moment().date(1);
-    this.draw();
+    this.getData(this.current.year(), this.current.month() + 1);
     var current = document.querySelector('.today');
     if(current) {
       var self = this;
@@ -16,6 +15,8 @@
       }, 500);
     }
   }
+
+  var legendTimeout;
 
   Calendar.prototype.draw = function() {
       // Create Header
@@ -31,7 +32,11 @@
       this.drawMonth();
 
       // Draw Legend after Month asynchronously
-      setTimeout(() => {
+      if (this.legendTimeout) {
+        clearTimeout(this.legendTimeout);
+      }
+
+      this.legendTimeout = setTimeout(() => {
           this.drawLegend();
       }, 500);
   }
@@ -332,13 +337,13 @@
   Calendar.prototype.nextMonth = function() {
     this.current.add('months', 1);
     this.next = true;
-    this.draw();
+    this.getData(this.current.year(), this.current.month() + 1);
   }
 
   Calendar.prototype.prevMonth = function() {
     this.current.subtract('months', 1);
     this.next = false;
-    this.draw();
+    this.getData(this.current.year(), this.current.month() + 1);
   }
 
   window.Calendar = Calendar;
@@ -353,4 +358,28 @@
     }
     return ele;
   }
+
+  Calendar.prototype.getData = function (year, month) {
+    var self = this;
+
+      $.ajax({
+        url: "/getMomentData",
+        type: "GET",
+        data: { year: year, month, month },
+        success: function(res) {
+          data = JSON.parse(res);
+
+          // 데이터의 날짜 필드를 moment 객체로 변환
+          data.forEach(function(item) {
+            item.date = moment(item.date);
+          });
+
+          self.events = data;
+          self.draw();
+        },
+        error: function(xhr, status, error) {
+          alert(xhr.responseText);
+        }
+      });
+    }
 }();

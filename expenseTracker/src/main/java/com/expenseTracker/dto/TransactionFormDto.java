@@ -28,7 +28,7 @@ public class TransactionFormDto {
     private String description;
 
     @NotNull(message = "금액은 필수 입력입니다.")
-    private Double amount;
+    private int amount;
 
     @NotNull(message = "자산 분류를 선택해주세요.")
     private Asset asset;

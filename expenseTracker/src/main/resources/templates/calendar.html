@@ -8,7 +8,8 @@
 </th:block>
 
 <body>
-    <div layout:fragment="content" id="calendar"></div>
+    <div layout:fragment="content" id="calendar">
+    </div>
 </body>
 
 <th:block layout:fragment="script">
@@ -16,15 +17,7 @@
     <script th:src="@{/js/calendar.js}"></script>
     <script th:inline="javascript">
         !function() {
-          var data = JSON.parse([[${data}]]);
-
-          // 데이터의 날짜 필드를 moment 객체로 변환
-          data.forEach(function(item) {
-            item.date = moment(item.date);
-          });
-
-          var calendar = new Calendar('#calendar', data);
-
+          const calendar = new Calendar('#calendar');
         }();
     </script>
 </th:block>

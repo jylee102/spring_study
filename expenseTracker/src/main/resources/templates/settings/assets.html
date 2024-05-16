@@ -62,8 +62,8 @@
                                     <input type="text" class="form-control asset-name" style="display: none;">
                                 </td>
                                 <td style="width: 32.5%; text-align: left;">
-                                    <span th:text="${#strings.replace(#strings.toString(asset.amount), '.0', '') + '원'}" class="amount-text"></span>
-                                    <input type="text" class="form-control asset-amount" style="display: none;">
+                                    <span th:text="${#numbers.formatInteger(asset.amount, 0, 'COMMA')} + '원'" class="amount-text"></span>
+                                    <input type="text" class="form-control asset-amount" onkeyup="inputNumberFormat(this)" style="display: none;">
                                 </td>
                                 <td style="width: 10%;">
                                     <button type="button" class="edit-button"
@@ -93,11 +93,11 @@
                                 <td style="width: 15%; background-color: inherit; color: white;">
                                     <i class="mdi mdi-menu-right" style="font-size: larger;"></i>
                                 </td>
-                                <td style="width: 55%; text-align: left;">
+                                <td style="width: 32.5%; text-align: left;">
                                     <input type="text" class="form-control asset-input">
                                 </td>
-                                <td style="width: 10%;">
-                                    <input type="text" class="form-control amount-input">
+                                <td style="width: 32.5%;">
+                                    <input type="text" class="form-control amount-input" onkeyup="inputNumberFormat(this)">
                                 </td>
                                 <td style="width: 10%;">
                                     <button type="button" class="save-btn"
@@ -111,7 +111,6 @@
                                         취소
                                     </button>
                                 </td>
-                                <div class="col-sm-1"></div>
                             </tr>
                             </tfoot>
                         </table>
@@ -133,6 +132,40 @@
         var token = $("meta[name='_csrf']").attr("content");
 		var header = $("meta[name='_csrf_header']").attr("content");
 
+        var originalWidths = []; // 셀 너비를 저장해놓을 공간
+        var resizeTimeout;
+
+        // 셀의 너비 저장(페이지가 로드될 때, 창 크기가 변경될 때)
+        function setOriginalWidths() {
+            var cells = document.querySelectorAll('tbody td');
+            cells.forEach((cell, index) => {
+                originalWidths[index] = cell.offsetWidth;
+            });
+        }
+
+        $(document).ready(function() {
+            setOriginalWidths();
+        });
+
+        window.addEventListener('resize', function(event){
+            clearTimeout(resizeTimeout); // 빠른 크기 전환 처리 위해
+            resizeTimeout = setTimeout(function() {
+                setOriginalWidths();
+            }, 200);
+        });
+
+        // 금액 포맷
+        function inputNumberFormat(obj) {
+            let value = obj.value; // 입력한 가격
+            value = Number(value.replaceAll(',', '')); // 콤마를 제거
+            if (isNaN(value)) {
+                obj.value = 0; // 숫자가 아니면 0으로 바꾼다.
+            } else {
+                const formatValue = value.toLocaleString('ko-KR'); // 한국에서 사용하는 콤마 단위로 숫자를 바꿔줌
+                obj.value = formatValue;
+            }
+        }
+
         /* 자산 등록 */
         $('.save-btn').on('click', function() {
             var name = $(this).closest('tr').find('.asset-input').val();
@@ -142,6 +175,8 @@
                 alert('카테고리의 이름을 지정해주세요.');
                 return;
             }
+
+            amount = Number(amount.replaceAll(',', ''));
 
             var paramData = {
                 name: name,
@@ -171,7 +206,7 @@
         // 등록 취소
         $('.cancel-btn').on('click', function() {
            $('.asset-input').val('');
-           $(this).closest('tr').find('[data-bs-toggle="popover"]').removeClass().addClass('btn').addClass('cloud');
+           $('.amount-input').val('');
         });
 
         /* 자산 삭제 */
@@ -217,12 +252,11 @@
             } else {
                 $(this).html('<i class="mdi mdi-pencil"></i>');
                 assetName.hide();
-                assetText.text(assetName.val()).show();
-
                 assetAmount.hide();
-                amountText.text(assetAmount.val() + '원').show();
 
-                updateAsset(assetRow.attr('asset-id'), assetName, assetText, assetAmount, amountText)
+                updateAsset(assetRow.attr('asset-id'),
+                    assetName.val(), assetText,
+                    Number(assetAmount.val().replaceAll(',', '')), amountText);
             }
         });
 
@@ -244,7 +278,7 @@
 				},
                 success: function(response) {
                     assetText.text(response[0]).show();
-                    amountText.text(response[1]).show();
+                    amountText.text(Number(response[1]).toLocaleString('ko-KR') + '원').show();
                 },
                 error: function(xhr, status, error) {
                     alert(xhr.responseText);
@@ -253,20 +287,10 @@
         }
 
         /* 순서 변경 */
-
-        var originalWidths = []; // 셀 너비를 저장해놓을 공간
-
         $('table.sortable tbody').sortable({
-            deactivate: function(event, ui) { // active 상태가 아닐 때 테이블 셀 너비 미리 저장
-                const cells = document.querySelectorAll('td');
+            start: function(event, ui) { // 테이블 셀 너비 유지
+                var cells = document.querySelectorAll('tbody td');
                 cells.forEach((cell, index) => {
-                    originalWidths[index] = cell.offsetWidth;
-                });
-            },
-            sort: function(event, ui) { // 테이블 셀 너비 유지
-                const cells = document.querySelectorAll('td');
-                cells.forEach((cell, index) => {
-                console.log(cell);
                     cell.style.width = originalWidths[index] + 'px';
                 });
             },

@@ -30,7 +30,13 @@ public class Category {
 
     private int position; // 순서
 
-    public Category() {};
+    public Category() {}
+
+    public Category(String name, Type type) {
+        this.name = name;
+        this.type = type;
+        this.color = "cloud";
+    }
 
     public Category(String name, Type type, Member member, String color, int position) {
         this.name = name;
@@ -39,4 +45,5 @@ public class Category {
         this.color = color;
         this.position = position;
     }
+
 }

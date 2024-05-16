@@ -20,7 +20,7 @@ public class Transaction {
     private Long id;
 
     private LocalDateTime date;
-    private Double amount;
+    private int amount;
     private String description;
 
     @ManyToOne
@@ -34,6 +34,18 @@ public class Transaction {
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
+
+    public Transaction() {
+    }
+
+    public Transaction(LocalDateTime date, int amount, String description, Asset asset, Category category, Member member) {
+        this.date = date;
+        this.amount = amount;
+        this.description = description;
+        this.asset = asset;
+        this.category = category;
+        this.member = member;
+    }
 
     public void update(TransactionFormDto transactionFormDto) {
         this.date = transactionFormDto.getDate().atTime(LocalTime.now());

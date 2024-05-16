@@ -30,29 +30,21 @@
 <body>
 <div class="site-wrap">
     <div class="container-scroller">
-        <div th:replace="fragments/sidebar::sidebar"></div>
+        <div th:replace="~{fragments/sidebar::sidebar}"></div>
         <div class="container-fluid page-body-wrapper">
-            <div th:replace="fragments/header::header"></div>
+            <div th:replace="~{fragments/header::header}"></div>
             <div class="main-panel">
                 <div class="content-wrapper">
                     <div layout:fragment="content" class="content"></div>
-                    <div th:replace="fragments/footer::footer"></div>
+                    <div th:replace="~{fragments/footer::footer}"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-
 <script th:src="@{/vendors/js/vendor.bundle.base.js}"></script>
-<!-- endinject -->
-<!-- Plugin js for this page -->
-<script th:src="@{/vendors/chart.js/Chart.min.js}"></script>
-<script th:src="@{/vendors/progressbar.js/progressbar.min.js}"></script>
-<script th:src="@{/vendors/jvectormap/jquery-jvectormap.min.js}"></script>
-<script th:src="@{/vendors/jvectormap/jquery-jvectormap-world-mill-en.js}"></script>
-<script th:src="@{/vendors/owl-carousel-2/owl.carousel.min.js}"></script>
-<!-- End plugin js for this page -->
+
 <!-- inject:js -->
 <script th:src="@{/js/off-canvas.js}"></script>
 <script th:src="@{/js/hoverable-collapse.js}"></script>
@@ -60,8 +52,6 @@
 <script th:src="@{/js/settings.js}"></script>
 <script th:src="@{/js/todolist.js}"></script>
 <!-- endinject -->
-<!-- Custom js for this page -->
-<script th:src="@{/js/dashboard.js}"></script>
 
 <!-- 각 페이지의 스크립트가 작성될 위치 -->
 <th:block layout:fragment="script"></th:block>

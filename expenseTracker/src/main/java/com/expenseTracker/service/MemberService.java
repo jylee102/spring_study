@@ -2,24 +2,34 @@ package com.expenseTracker.service;
 
 import com.expenseTracker.config.MemberContext;
 import com.expenseTracker.constant.Type;
+import com.expenseTracker.dto.MemberFormDto;
 import com.expenseTracker.entity.Asset;
 import com.expenseTracker.entity.Category;
 import com.expenseTracker.entity.Member;
 import com.expenseTracker.repository.AssetRepository;
 import com.expenseTracker.repository.CategoryRepository;
 import com.expenseTracker.repository.MemberRepository;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional // 하나의 메소드가 트랜잭션으로 묶인다.(DB Exception 혹은 다른 Exception 발생시 롤백)
@@ -29,6 +39,8 @@ public class MemberService implements UserDetailsService {
 
     private final AssetRepository assetRepository;
     private final CategoryRepository categoryRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     // 회원가입
     public Member saveMember(Member member) {
@@ -59,7 +71,7 @@ public class MemberService implements UserDetailsService {
 
         // 자산 생성 및 저장
         for (int i = 0; i < assetNames.length; i++) {
-            Asset asset = new Asset(assetNames[i], member, 0.0, i + 1);
+            Asset asset = new Asset(assetNames[i], member, 0, i + 1);
             assetRepository.save(asset);
         }
     }
@@ -76,6 +88,25 @@ public class MemberService implements UserDetailsService {
     // 이메일로 회원 찾기
     public Member getMember(String email) {
         return memberRepository.findByEmail(email);
+    }
+
+    // 회원정보 업데이트
+    public Long updateMember(MemberFormDto memberFormDto) {
+        Member member = getMember(memberFormDto.getEmail());
+        member.update(memberFormDto);
+
+        return member.getId();
+    }
+
+    // 비밀번호 확인(현재 비밀번호와 같은지)
+    public Boolean checkPassword(Member member, String password) {
+        return passwordEncoder.matches(password, member.getPassword());
+    }
+
+    // 비밀번호 변경
+    public void updatePassword(Member member, String rawPassword) {
+        String password = passwordEncoder.encode(rawPassword);
+        member.setPassword(password);
     }
 
     @Override

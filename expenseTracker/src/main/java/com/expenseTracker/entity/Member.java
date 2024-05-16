@@ -42,4 +42,9 @@ public class Member {
 
         return member;
     }
+
+    public void update(MemberFormDto memberFormDto) {
+        this.name = memberFormDto.getName();
+        this.phone = memberFormDto.getPhone();
+    }
 }

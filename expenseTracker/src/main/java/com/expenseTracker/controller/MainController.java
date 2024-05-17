@@ -167,13 +167,13 @@ public class MainController {
                 categories.add(categoryService.findById(2L));
 
                 // 수입 카테고리 내역의 총액
-                total = transactionService.getTotalAmountOf(Type.INCOME, year, month);
+                total = transactionService.getTotalAmountOf(Type.INCOME, year, month, memberId);
             } else {
                 categories = categoryService.getCategories(memberId, Type.EXPENSE);
                 categories.add(categoryService.findById(1L));
 
                 // 지출 카테고리 내역의 총액
-                total = transactionService.getTotalAmountOf(Type.EXPENSE, year, month);
+                total = transactionService.getTotalAmountOf(Type.EXPENSE, year, month, memberId);
             }
 
             // 각 카테고리별 내역 액수를 계산
@@ -198,7 +198,8 @@ public class MainController {
     }
 
     // 카테고리 이름과 수입 데이터를 매핑하여 차트에 사용할 수 있는 형태로 변환하는 메서드
-    private List<Map<String, Object>> convertToChartData(List<Category> categories, List<Integer> amounts, double total) {
+    private List<Map<String, Object>> convertToChartData(List<Category> categories, List<Integer> amounts,
+                                                         double total) {
         List<Map<String, Object>> chartData = new ArrayList<>();
         int categoriesSize = categories.size();
         int amountsSize = amounts.size();
@@ -215,7 +216,8 @@ public class MainController {
             map.put("amount", amount);
             chartData.add(map);
         }
-        chartData.sort((a, b) -> Double.compare((double)b.get("data"), (double)a.get("data"))); // data를 기준으로 내림차순으로(data가 큰 순서대로)
+        chartData.sort((a, b) -> Double.compare((double) b.get("data"), (double) a.get("data"))); // data를 기준으로
+        // 내림차순으로(data가 큰 순서대로)
         return chartData;
     }
 

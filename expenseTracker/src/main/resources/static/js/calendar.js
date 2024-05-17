@@ -6,14 +6,6 @@
     this.el = document.querySelector(selector);
     this.current = moment().date(1);
     this.getData(this.current.year(), this.current.month() + 1);
-    var current = document.querySelector('.today');
-    if(current) {
-      var self = this;
-      window.setTimeout(function() {
-        current.classList.add('selected');
-        self.openDay(current);
-      }, 500);
-    }
   }
 
   var legendTimeout;
@@ -39,6 +31,15 @@
       this.legendTimeout = setTimeout(() => {
           this.drawLegend();
       }, 500);
+
+      var current = document.querySelector('.today');
+      if(current) {
+        var self = this;
+        window.setTimeout(function() {
+          current.classList.add('selected');
+          self.openDay(current);
+        }, 500);
+      }
   }
 
   Calendar.prototype.drawHeader = function() {
@@ -365,7 +366,7 @@
       $.ajax({
         url: "/getMomentData",
         type: "GET",
-        data: { year: year, month, month },
+        data: { year: year, month: month },
         success: function(res) {
           data = JSON.parse(res);
 

@@ -12,15 +12,23 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    @Query("SELECT t FROM Transaction t WHERE MONTH(t.date) = MONTH(sysdate) AND t.member.id = :memberId order by t.date desc")
+    @Query("SELECT t FROM Transaction t WHERE MONTH(t.date) = MONTH(sysdate) AND t.member.id = :memberId order by t" +
+            ".date desc")
     Page<Transaction> findByMemberIdAndDateMonth(@Param("memberId") Long memberId, Pageable pageable);
 
-    @Query("SELECT t FROM Transaction t WHERE t.member.id = :memberId AND YEAR(t.date) = :year AND MONTH(t.date) = :month")
+    @Query("SELECT t FROM Transaction t WHERE t.member.id = :memberId AND YEAR(t.date) = :year AND MONTH(t.date) = " +
+            ":month")
     List<Transaction> getList(@Param("memberId") Long memberId, @Param("year") int year, @Param("month") int month);
 
-    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.category.id = :categoryId AND YEAR(t.date) = :year AND MONTH(t.date) = :month")
-    int calcTotalAmountForCategory(@Param("categoryId") Long categoryId, @Param("year") int year, @Param("month") int month);
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.category.id = :categoryId AND YEAR(t.date) =" +
+            " :year AND MONTH(t.date) = :month")
+    int calcTotalAmountForCategory(@Param("categoryId") Long categoryId, @Param("year") int year,
+                                   @Param("month") int month);
 
-    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.category.type = :categoryType AND YEAR(t.date) = :year AND MONTH(t.date) = :month")
-    double getTotalAmountOf(@Param("categoryType") Type categoryType, @Param("year") int year, @Param("month") int month);
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+            "WHERE t.category.type = :categoryType " +
+            "AND YEAR(t.date) = :year AND MONTH(t.date) = :month " +
+            "AND t.member.id = :memberId")
+    double getTotalAmountOf(@Param("categoryType") Type categoryType, @Param("year") int year,
+                            @Param("month") int month, @Param("memberId") Long memberId);
 }

@@ -152,7 +152,7 @@
                     chartData.forEach(function(value, index) {
                         if (value.amount !== 0 && index <= 1) {
                             content += '<div class="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">';
-                            content += '<div class="text-md-center text-xl-left align-self-center ' + value.color + '" style="border-radius: 10px; margin: 5px; padding: 5px;">';
+                            content += '<div class="text-md-center text-xl-left align-self-center ' + value.color + '" style="border-radius: 10px; margin: 5px; padding: 5px; color: ' + (value.color === 'cloud' ? '#9c9c9c' : 'white') + ';">';
                             content += '<h6 class="mb-1">' + value.data.toFixed(0) + '%</h6>';
                             content += '</div>';
                             content += '<div class="text-md-center text-xl-left align-self-center" style="padding: 5px; margin: 5px;">';
@@ -256,7 +256,7 @@
                               ctx = chart.chart.ctx;
 
                           ctx.restore();
-                          var fontSize = 1;
+                          var fontSize = Math.round(height / 200);;
                           ctx.font = fontSize + "rem sans-serif";
                           ctx.textAlign = 'left';
                           ctx.textBaseline = "middle";
@@ -269,7 +269,7 @@
                           ctx.fillText(text, textX, textY);
 
                           ctx.restore();
-                          var fontSize = 0.75;
+                          var fontSize = Math.round(height / 266);
                           ctx.font = fontSize + "rem sans-serif";
                           ctx.textAlign = 'left';
                           ctx.textBaseline = "middle";

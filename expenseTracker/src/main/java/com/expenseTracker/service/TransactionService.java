@@ -87,7 +87,7 @@ public class TransactionService {
     }
 
     // 수입/지출의 총액
-    public double getTotalAmountOf(Type type, int year, int month) throws Exception {
-        return transactionRepository.getTotalAmountOf(type, year, month);
+    public double getTotalAmountOf(Type type, int year, int month, Long memberId) throws Exception {
+        return transactionRepository.getTotalAmountOf(type, year, month, memberId);
     }
 }

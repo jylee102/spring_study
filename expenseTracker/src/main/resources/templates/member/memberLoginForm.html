@@ -10,6 +10,11 @@
     </style>
 </th:block>
 
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+</head>
+
 <div layout:fragment="content" class="row w-100 m-0">
     <div class="content-wrapper full-page-wrapper d-flex align-items-center auth login-bg">
         <div class="card col-lg-4 mx-auto">
@@ -46,7 +51,7 @@
                             <div class="modal-header">
                                 <h5 class="modal-title" id="resetPasswordModalLabel">비밀번호 초기화</h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
+                                    <i class="mdi mdi-window-close"></i>
                                 </button>
                             </div>
                             <div class="modal-body">
@@ -55,30 +60,7 @@
                                         <label th:for="email">이메일</label>
                                         <input type="text" name="email" class="form-control">
                                     </div>
-                                    <button type="button" class="btn btn-primary" onclick="sendVerificationCode()">확인</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 인증번호 입력 모달 -->
-                <div id="verificationModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="verificationModalLabel" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="verificationModalLabel">인증번호 확인</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="verificationForm">
-                                    <div class="form-group">
-                                        <label for="verificationCode">인증번호</label>
-                                        <input type="text" id="verificationCode" name="verificationCode" class="form-control" placeholder="인증번호를 입력하세요">
-                                    </div>
-                                    <button type="button" class="btn btn-primary" onclick="verifyVerificationCodeAndInitPw()">확인</button>
+                                    <button type="button" class="btn btn-primary" onclick="sendNewPassword()">확인</button>
                                 </form>
                             </div>
                         </div>
@@ -124,6 +106,34 @@
             }
 
         });
+
+        // ★ 헤더에 있는 토큰 값을 가지고 온다. (반드시 같이 전송해야 함)
+        var token = $("meta[name='_csrf']").attr("content");
+        var header = $("meta[name='_csrf_header']").attr("content");
+
+        function sendNewPassword() {
+
+            var email = $('#resetPasswordForm').find("[name='email']").val();
+
+            $.ajax({
+                url: '/members/sendNewPassword',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ email: email }),
+                beforeSend : function(xhr) {
+                    xhr.setRequestHeader(header, token);
+                },
+                success: function(response) {
+                    $('#resetPasswordForm').find("[name='email']").val('');
+                    $('#resetPasswordModal').modal('hide');
+                    alert(response);
+                },
+                error: function(jqXHR, status, error) {
+                    alert(jqXHR.responseText);
+                }
+            });
+        }
+
     </script>
 </th:block>
 </html>

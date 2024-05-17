@@ -3,10 +3,12 @@ package com.expenseTracker.controller;
 import com.expenseTracker.dto.MemberFormDto;
 import com.expenseTracker.entity.Member;
 import com.expenseTracker.service.MemberService;
+import com.expenseTracker.util.EmailUtil;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +19,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +29,8 @@ import java.util.Map;
 public class MemberController {
     private final PasswordEncoder passwordEncoder;
     private final MemberService memberService;
+    private final EmailUtil emailUtil;
+
 
     // 로그인 화면
     @GetMapping(value = "/members/login") // localhost/members/login
@@ -68,7 +73,7 @@ public class MemberController {
             model.addAttribute("errorMessage", e.getMessage());
             return "member/memberForm";
         }
-        
+
         return "redirect:/"; // 회원가입 완료 후 메인페이지로 이동
     }
 
@@ -149,5 +154,42 @@ public class MemberController {
         model.addAttribute("message", "비밀번호가 성공적으로 변경되었습니다.");
 
         return "/settings/myInfo";
+    }
+
+    // 임시 비밀번호 보내기
+    @PostMapping(value = "/members/sendNewPassword")
+    public @ResponseBody ResponseEntity sendNewPassword(@RequestBody Map<String, String> req) {
+        try {
+            Member member = memberService.getMember(req.get("email"));
+
+            if (member == null) {
+                return new ResponseEntity("해당 이메일로 된 계정을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+            }
+
+            String password = generateRandomCode();
+            emailUtil.sendVerificationCode(member.getEmail(), password); // 이메일로 임시 비밀번호 전송
+
+            // 비밀번호 임시 비밀번호로 업데이트
+            memberService.updatePassword(member, password);
+            return new ResponseEntity("해당 이메일로 임시 비밀번호가 전송되었습니다.", HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity("현재 비밀번호 초기화를 이용할 수 없습니다. 관리자에게 문의하세요.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final int CODE_LENGTH = 8;
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    // 임시 비밀번호 생성
+    public String generateRandomCode() {
+        StringBuilder code = new StringBuilder(CODE_LENGTH);
+
+        for (int i = 0; i < CODE_LENGTH; i++) {
+            int index = RANDOM.nextInt(CHARACTERS.length());
+            code.append(CHARACTERS.charAt(index));
+        }
+        return code.toString();
     }
 }

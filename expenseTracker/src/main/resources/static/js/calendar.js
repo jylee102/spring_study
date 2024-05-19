@@ -6,6 +6,14 @@
     this.el = document.querySelector(selector);
     this.current = moment().date(1);
     this.getData(this.current.year(), this.current.month() + 1);
+    var current = document.querySelector('.today');
+    if(current) {
+      var self = this;
+      window.setTimeout(function() {
+        current.classList.add('selected');
+        this.openDay(current);
+      }, 500);
+    }
   }
 
   var legendTimeout;
@@ -366,7 +374,7 @@
       $.ajax({
         url: "/getMomentData",
         type: "GET",
-        data: { year: year, month: month },
+        data: { year: year, month, month },
         success: function(res) {
           data = JSON.parse(res);
 

@@ -12,9 +12,16 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    @Query("SELECT t FROM Transaction t WHERE MONTH(t.date) = MONTH(sysdate) AND t.member.id = :memberId order by t" +
-            ".date desc")
-    Page<Transaction> findByMemberIdAndDateMonth(@Param("memberId") Long memberId, Pageable pageable);
+
+    @Query("SELECT t FROM Transaction t WHERE YEAR(t.date) = :year AND MONTH(t.date) = :month " +
+            "AND t.member.id = :memberId " +
+            "AND (LOWER(t.category.name) LIKE LOWER(CONCAT('%', :searchValue, '%')) " +
+            "OR LOWER(t.description) LIKE LOWER(CONCAT('%', :searchValue, '%'))) " +
+            "order by t.date desc")
+    Page<Transaction> findByMemberIdAndDateMonth(@Param("memberId") Long memberId,
+                                                 @Param("year") int year, @Param("month") int month,
+                                                 @Param("searchValue") String searchValue,
+                                                 Pageable pageable);
 
     @Query("SELECT t FROM Transaction t WHERE t.member.id = :memberId AND YEAR(t.date) = :year AND MONTH(t.date) = " +
             ":month")

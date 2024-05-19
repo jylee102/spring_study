@@ -34,6 +34,13 @@
     .pagination {
       margin: 2%;
     }
+
+    .pagination-container {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
   </style>
 </th:block>
 
@@ -48,10 +55,12 @@
       <div class="card">
         <div class="card-body">
           <h4 class="card-title">내역</h4>
-          <p class="card-description"> Add class <code>.table-dark</code>
-          </p>
-          <form th:action="@{'/' + ${items.number}}" method="get"
-                th:object="${items}" class="table-responsive">
+
+          <button id="prevMonthBtn"><</button>
+          <span id="currentMonth"></span>
+          <button id="nextMonthBtn">></button>
+
+          <form class="table-responsive">
             <table class="table table-hover table-striped">
               <thead>
               <tr>
@@ -67,28 +76,7 @@
             </table>
           </form>
 
-          <nav aria-label="Page navigation example"
-               th:with="start=${(items.number/maxPage) * maxPage + 1},
-               end=(${(items.totalPages == 0) ? 1 : (start + (maxPage - 1) < items.totalPages ? start + (maxPage - 1) : items.totalPages)})">
-            <ul class="pagination d-flex justify-content-center">
-              <li class="page-item" th:classappend="${items.first} ? 'disabled'">
-                <a class="page-link"
-                   th:href="'/' + ${items.number - 1}">이전</a>
-              </li>
-
-              <li class="page-item"
-                  th:each="page : ${#numbers.sequence(start, end)}"
-                  th:classappend="${items.number eq page-1} ? 'active' : ''">
-                <a class="page-link" th:inline="text"
-                   th:href="'/' + ${page - 1}">[[${page}]]</a>
-              </li>
-
-              <li class="page-item" th:classappend="${items.last} ? 'disabled'">
-                <a class="page-link"
-                   th:href="'/' + ${items.number + 1}">다음</a>
-              </li>
-            </ul>
-          </nav>
+          <nav class="pagination-container"></nav>
         </div>
       </div>
     </div>
@@ -271,27 +259,59 @@
   var errorMessage = [[${errorMessage}]];
   if(errorMessage != null || errorMessage == "") alert(errorMessage);
 
+  var searchValue = [[${searchValue}]];
+
   $(document).ready(function() {
       var currentPath = window.location.pathname;
 
-      if (currentPath == "/") {
-        loadData(); // 초기 데이터 로드
-      } else {
-        loadData(currentPath.replace("/", ""));
+      let currentPage = 1;
+      let currentYear = new Date().getFullYear();
+      let currentMonth = new Date().getMonth() + 1;
+
+      loadData(currentYear, currentMonth, currentPage, searchValue);
+
+      // 이전 월로 이동하는 함수
+      function prevMonth() {
+        if (currentMonth === 1) {
+          currentMonth = 12;
+          currentYear -= 1;
+        } else {
+            currentMonth -= 1;
+        }
+        loadData(currentYear, currentMonth, currentPage, searchValue);
       }
+
+      // 다음 월로 이동하는 함수
+      function nextMonth() {
+        if (currentMonth === 12) {
+          currentMonth = 1;
+          currentYear += 1;
+        } else {
+          currentMonth += 1;
+        }
+        loadData(currentYear, currentMonth, currentPage, searchValue);
+      }
+
+      $("#prevMonthBtn").click(prevMonth);
+      $("#nextMonthBtn").click(nextMonth);
   });
 
-  function loadData(page) {
+  function loadData(year, month, page, searchValue) {
       $.ajax({
-          url: page ? "/loadItems/" + page : "/loadItems",
+          url: "/loadItems",
           method: "GET",
+          data: { year: year, month: month, page: page - 1, searchValue: searchValue },
           success: function(data) {
+              currentYear = year;
+              currentMonth = month;
+
+              $("#currentMonth").text(year + "년 " + month + "월");
+
               renderItems(data); // 데이터를 렌더링하는 함수 호출
               renderPagination(data); // 페이징 버튼 데이터 렌더링
           },
           error: function(jqXHR, textStatus, errorThrown) {
-              // 데이터를 받아오지 못한 경우 에러 처리
-              console.error("Error loading initial data: " + textStatus, errorThrown);
+              alert(jqXHR.responseText);
           }
       });
   }
@@ -300,6 +320,11 @@
   function renderItems(data) {
       var tableBody = $(".table tbody");
       tableBody.empty(); // 기존 내용을 비우고 새로운 데이터를 추가할 준비
+
+      if (data.totalPages == 0) {
+        $(".table tbody").append('<tr><td colspan="5">해당하는 데이터가 없습니다.</td></tr>');
+        return;
+      }
 
       // 받아온 데이터를 반복하여 테이블에 추가
       $.each(data.content, function(index, item) {
@@ -326,18 +351,19 @@
   }
 
   // 페이지 버튼을 동적으로 생성하는 함수
-  function renderPageButtons(start, end) {
+  function renderPageButtons(start, end, currentPage) {
     var paginationUl = $("<ul></ul>").addClass("pagination d-flex justify-content-center");
     for (var i = start; i <= end; i++) {
-      var liClass = (i === start) ? "page-item disabled" : "page-item";
-      var aClass = (i === start) ? "page-link" : "page-link clickable-page";
-      var li = $("<li></li>").addClass(liClass);
-      var a = $("<a></a>")
-                .addClass(aClass)
-                .attr("href", "#")
-                .attr("data-page", i - 1) // 페이지 번호는 0부터 시작하므로 1을 빼줌
+      var activeClass = i === currentPage ? 'page-item active' : 'page-item';
+      var buttonClass = (i === start) ? "page-link" : "page-link clickable-page";
+
+      var li = $("<li></li>").addClass(activeClass);
+      var button = $("<button></button>")
+                .addClass(buttonClass)
+                .attr("onclick", `loadData(${currentYear}, ${currentMonth}, ${i}, ${searchValue});`)
+                .attr("data-page", i - 1)
                 .text(i);
-      li.append(a);
+      li.append(button);
       paginationUl.append(li);
     }
     return paginationUl;
@@ -349,21 +375,22 @@
 
     var maxPage = 5; // 최대 페이지 수
     var totalPages = data.totalPages;
-    var currentPage = data.number + 1; // 페이지 번호는 0부터 시작하므로 1을 더해줌
+
+    if (totalPages == 0) return;
+
+    currentPage = data.number + 1; // 페이지 번호는 0부터 시작하므로 1을 더해줌
     var start = Math.max(1, currentPage - Math.floor(maxPage / 2));
     var end = Math.min(totalPages, start + maxPage - 1);
 
     var prevLi = $("<li></li>").addClass("page-item").addClass(currentPage === 1 ? "disabled" : "");
-    var prevLink = $("<a></a>").addClass("page-link").attr("href", "#").attr("data-page", currentPage - 2).text("이전");
+    var prevLink = $("<button></button>").addClass("page-link").attr("onclick", `loadData(${currentYear}, ${currentMonth}, ${currentPage - 1}, ${searchValue});`).attr("data-page", currentPage - 2).text("이전");
     prevLi.append(prevLink);
 
     var nextLi = $("<li></li>").addClass("page-item").addClass(currentPage === totalPages ? "disabled" : "");
-    var nextLink = $("<a></a>").addClass("page-link").attr("href", "#").attr("data-page", currentPage).text("다음");
+    var nextLink = $("<button></button>").addClass("page-link").attr("onclick", `loadData(${currentYear}, ${currentMonth}, ${currentPage + 1}, ${searchValue});`).attr("data-page", currentPage).text("다음");
     nextLi.append(nextLink);
 
-    paginationContainer.append(prevLi);
-    paginationContainer.append(renderPageButtons(start, end));
-    paginationContainer.append(nextLi);
+    paginationContainer.append(renderPageButtons(start, end, currentPage).prepend(prevLi).append(nextLi));
   }
 
   // ★ 헤더에 있는 토큰 값을 가지고 온다. (반드시 같이 전송해야 함)

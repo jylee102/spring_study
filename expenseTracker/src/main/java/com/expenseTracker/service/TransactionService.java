@@ -44,8 +44,8 @@ public class TransactionService {
 
     // 리스트 페이지
     @Transactional(readOnly = true)
-    public Page<Transaction> getPage(Long memberId, Pageable pageable) throws Exception {
-        return transactionRepository.findByMemberIdAndDateMonth(memberId, pageable);
+    public Page<Transaction> getPage(Long memberId, int year, int month, String searchValue, Pageable pageable) throws Exception {
+        return transactionRepository.findByMemberIdAndDateMonth(memberId, year, month, searchValue, pageable);
     }
 
     // 리스트(달력)

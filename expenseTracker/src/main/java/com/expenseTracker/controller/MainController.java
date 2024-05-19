@@ -44,41 +44,33 @@ public class MainController {
     private final AssetService assetService;
     private final CategoryService categoryService;
 
-    @GetMapping(value = {"/", "/{page}"})
-    public String main(HttpServletRequest request,
-                       @PathVariable("page") Optional<Integer> page,
-                       Model model, Principal principal) {
+    @GetMapping(value = "/")
+    public String main(HttpServletRequest request, Model model, @RequestParam(value = "searchValue", defaultValue = "") String searchValue) {
         // 로그인 되어 있지 않다면 로그인 페이지로
         Object httpStatus = request.getAttribute("HttpStatus");
         if (httpStatus != null && (int) httpStatus == HttpServletResponse.SC_UNAUTHORIZED)
             return "/members/login";
 
-        /* 내역 리스트 관련 */
-        Long memberId = memberService.getMember(principal.getName()).getId();// 현재 로그인한 유저
-
-        // 필요한 데이터를 미리 로드
-        loadInitialData(model, memberId, PageRequest.of(page.orElse(0), 10));
-
         /* 모달 관련 */
         model.addAttribute("transactionFormDto", new TransactionFormDto());
+        model.addAttribute("searchValue", searchValue);
 
         return "index";
     }
 
     @GetMapping(value = {"/loadItems", "/loadItems/{page}"})
     @ResponseBody
-    public Page<Transaction> loadItems(Principal principal, @PathVariable("page") Optional<Integer> page) throws Exception {
+    public Page<Transaction> loadItems(Principal principal, @RequestParam("page") int page,
+                                       @RequestParam("year") int year, @RequestParam("month") int month,
+                                       @RequestParam("searchValue") String searchValue) throws Exception {
         Long memberId = memberService.getMember(principal.getName()).getId();// 현재 로그인한 유저
-        return transactionService.getPage(memberId, PageRequest.of(page.orElse(0), 10));
+        return transactionService.getPage(memberId, year, month, searchValue, PageRequest.of(page, 10));
     }
 
     private void loadInitialData(Model model, Long memberId, Pageable pageable) {
         try {
-            Page<Transaction> items = transactionService.getPage(memberId, pageable);
 
             model.addAttribute("member", memberId);
-            model.addAttribute("items", items);
-            model.addAttribute("maxPage", 5);
 
             List<Asset> assets = assetService.getAssets(memberId);
             List<Category> incomeCategories = categoryService.getCategories(memberId, Type.INCOME);
@@ -105,17 +97,6 @@ public class MainController {
         if (httpStatus != null && (int) httpStatus == HttpServletResponse.SC_UNAUTHORIZED)
             return "/members/login";
 
-        // Gson 객체 생성 시 커스텀 어댑터 등록
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Transaction.class, new TransactionSerializer())
-                .create();
-
-        Long memberId = memberService.getMember(principal.getName()).getId();// 현재 로그인한 유저
-
-        List<Transaction> transactions = transactionService.getList(memberId, 2024, 5);
-        String json = gson.toJson(transactions); // List<Transaction>을 JSON 문자열로 변환
-
-        model.addAttribute("data", json);
         return "calendar";
     }
 
@@ -216,8 +197,7 @@ public class MainController {
             map.put("amount", amount);
             chartData.add(map);
         }
-        chartData.sort((a, b) -> Double.compare((double) b.get("data"), (double) a.get("data"))); // data를 기준으로
-        // 내림차순으로(data가 큰 순서대로)
+        chartData.sort((a, b) -> Double.compare((double) b.get("data"), (double) a.get("data"))); // data를 기준으로 내림차순으로(data가 큰 순서대로)
         return chartData;
     }
 

@@ -45,15 +45,15 @@ public class MainController {
     private final CategoryService categoryService;
 
     @GetMapping(value = "/")
-    public String main(HttpServletRequest request, Model model, @RequestParam(value = "searchValue", defaultValue = "") String searchValue) {
+    public String main(HttpServletRequest request, Model model, Principal principal,
+                       @RequestParam(value = "searchValue", defaultValue = "") String searchValue) {
         // 로그인 되어 있지 않다면 로그인 페이지로
         Object httpStatus = request.getAttribute("HttpStatus");
         if (httpStatus != null && (int) httpStatus == HttpServletResponse.SC_UNAUTHORIZED)
             return "/members/login";
 
-        /* 모달 관련 */
-        model.addAttribute("transactionFormDto", new TransactionFormDto());
-        model.addAttribute("searchValue", searchValue);
+        Member member = memberService.getMember(principal.getName());
+        loadInitialData(model, member, searchValue);
 
         return "index";
     }
@@ -67,9 +67,10 @@ public class MainController {
         return transactionService.getPage(memberId, year, month, searchValue, PageRequest.of(page, 10));
     }
 
-    private void loadInitialData(Model model, Long memberId, Pageable pageable) {
+    private void loadInitialData(Model model, Member member, String searchValue) {
         try {
 
+            Long memberId = member.getId();
             model.addAttribute("member", memberId);
 
             List<Asset> assets = assetService.getAssets(memberId);
@@ -83,6 +84,9 @@ public class MainController {
             model.addAttribute("assets", assets);
             model.addAttribute("incomeCategories", incomeCategories);
             model.addAttribute("expenseCategories", expenseCategories);
+
+            model.addAttribute("transactionFormDto", new TransactionFormDto());
+            model.addAttribute("searchValue", searchValue);
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("errorMessage", "데이터를 불러오는 것에 실패했습니다. 관리자에게 문의하세요.");

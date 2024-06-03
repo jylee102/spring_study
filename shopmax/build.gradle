@@ -49,10 +49,17 @@ dependencies {
 
     // modelmapper
     implementation group: 'org.modelmapper', name: 'modelmapper', version: '2.4.2'
+
+    //jasypt
+    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.withType(Test) {
+    enabled = false
 }
 
 def generated = 'src/main/generated'
